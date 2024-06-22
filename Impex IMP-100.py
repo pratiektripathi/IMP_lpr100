@@ -18,6 +18,7 @@ from tkcalendar import DateEntry
 import report2
 import templete as temp
 import zebrapl
+import sqlite3 as lite
 
 
 xuid=0
@@ -629,14 +630,12 @@ class StartPage(tk.Frame):
         window=Window(self)
         window.grab_set()
 
-
 class Window(tk.Toplevel):
 
     def __init__(self, parent, **kwargs):
-        tk.Toplevel.__init__(self, parent,**kwargs)
+        tk.Toplevel.__init__(self, parent, **kwargs)
 
-
-        self.geometry(str(self.winfo_screenwidth())+"x"+str(self.winfo_screenheight()))
+        self.geometry(str(self.winfo_screenwidth()) + "x" + str(self.winfo_screenheight()))
         self.state('zoomed')
         self.iconbitmap('myicon.ico')
         self.focus_set()
@@ -645,54 +644,48 @@ class Window(tk.Toplevel):
         self.frame_but = tk.Frame(self, bg='white')
         self.frame_top = tk.Frame(self, bg='white')
         self.count = tk.StringVar()
-        self.cc=0
+        self.cc = 0
         count_font = Font(family="Arquitecta", size=8)
-        self.count.set(str(self.cc)+" data marked")
-
+        self.count.set(str(self.cc) + " data marked")
 
         data = self.allrows
         self.rows = len(data)
         self.columns = len(data[0])
         data = [[0] + list(row) for row in data]
 
-        self.errlb = tk.Label(self.frame_but, textvariable=self.count, fg="black", bg='white', width=30,font=count_font)
-
+        self.errlb = tk.Label(self.frame_but, textvariable=self.count, fg="black", bg='white', width=30, font=count_font)
         self.errlb.grid(row=0, column=0)
-
-
 
         self.savebut = tk.Button(self.frame_but, text='Packing list', width=20, bg='lightgrey', activebackground='lightgrey',
                                  activeforeground='black', command=lambda: self.printing())
-
-        self.savebut.grid(row=0,column=1)
+        self.savebut.grid(row=0, column=1)
 
         self.markall = tk.Button(self.frame_but, text='mark all', width=20, bg='lightgrey', activebackground='lightgrey',
                                  activeforeground='black', command=lambda: self.mall())
-
-        self.markall.grid(row=0,column=2)
+        self.markall.grid(row=0, column=2)
 
         self.umarkall = tk.Button(self.frame_but, text='unmark all', width=20, bg='lightgrey', activebackground='lightgrey',
-                                 activeforeground='black', command=lambda: self.umall())
-
-        self.umarkall.grid(row=0,column=3)
-
+                                  activeforeground='black', command=lambda: self.umall())
+        self.umarkall.grid(row=0, column=3)
 
         self.delbut = tk.Button(self.frame_but, text='delete marked', width=20, bg='lightgrey', activebackground='lightgrey',
-                                 activeforeground='black', command=lambda: self.delcheck())
-
-        self.delbut.grid(row=0,column=4)
+                                activeforeground='black', command=lambda: self.delcheck())
+        self.delbut.grid(row=0, column=4)
 
         self.gen_excel_but = tk.Button(self.frame_but, text='Generate Excel', width=20, bg='lightgrey', activebackground='lightgrey',
                                        activeforeground='black', command=lambda: self.generate_excel())
+        self.gen_excel_but.grid(row=0, column=5)
 
-        self.gen_excel_but.grid(row=0,column=5)
+        # Dropdown widget for filtering
+        self.status_filter = tk.StringVar()
+        self.status_filter.set("All")
+        self.filter_options = ["Pending", "Done", "All"]
+        self.filter_dropdown = tk.OptionMenu(self.frame_but, self.status_filter, *self.filter_options, command=self.filter_data)
+        self.filter_dropdown.grid(row=0, column=6)
 
         self.frame_but.pack()
 
-
-        self.tree = ttk.Treeview(self.frame_top, columns=list(range(self.columns+1)), show="headings")
-
-
+        self.tree = ttk.Treeview(self.frame_top, columns=list(range(self.columns + 1)), show="headings")
 
         # Set up the table headings
         self.tree.heading(0, text="")
@@ -705,7 +698,7 @@ class Window(tk.Toplevel):
         self.tree.heading(7, text="Tare Wt.")
         self.tree.heading(8, text="Core Wt.")
         self.tree.heading(9, text="Net Wt.")
-
+        self.tree.heading(10, text="Status")  # New status column
 
         self.tree.column(0, width=10, stretch=True)
         self.tree.column(1, width=20, stretch=True)
@@ -717,11 +710,12 @@ class Window(tk.Toplevel):
         self.tree.column(7, width=30, stretch=True)
         self.tree.column(8, width=30, stretch=True)
         self.tree.column(9, width=30, stretch=True)
-
+        self.tree.column(10, width=100, stretch=True)  # New status column width
 
         # Populate the table with the data
+        self.tree_data = [[0] + list(row) for row in self.allrows]
         for i in range(self.rows):
-            self.tree.insert("", "end", values=data[i], tags=("readonly",))
+            self.tree.insert("", "end", values=self.tree_data[i], tags=("readonly",))
         self.tree.tag_configure("readonly", background="#f0f0f0")
 
         # Bind keys '1' and '0' to toggle the value of the first column in the currently focused row
@@ -734,52 +728,59 @@ class Window(tk.Toplevel):
         # self.tree.focus(self.tree.get_children()[0])
         # self.tree.selection_remove(self.tree.selection())
 
-
         vsb = ttk.Scrollbar(self.frame_top, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=vsb.set)
         vsb.pack(side="right", fill="y")
 
         self.tree.pack(side="left", fill="both", expand=True, padx=10, pady=10)
-        self.frame_top.pack(fill="both",expand=True,padx=10, pady=10)
-
-
+        self.frame_top.pack(fill="both", expand=True, padx=10, pady=10)
 
     def mall(self):
         for item in self.tree.get_children():
             self.tree.item(item, values=[1 if i == 0 else val for i, val in enumerate(self.tree.item(item)["values"])])
-        self.cc=len(self.tree.get_children())
-        self.count.set(str(self.cc)+" data marked")
+        self.cc = len(self.tree.get_children())
+        self.count.set(str(self.cc) + " data marked")
 
     def umall(self):
         for item in self.tree.get_children():
             self.tree.item(item, values=[0 if i == 0 else val for i, val in enumerate(self.tree.item(item)["values"])])
-        self.cc=0
-        self.count.set(str(self.cc)+" data marked")
-
+        self.cc = 0
+        self.count.set(str(self.cc) + " data marked")
 
     def generate_excel(self):
+        con=lite.connect("batch.db")
+        cur=con.cursor()
+        for data in self.get():
+            cur.execute("""UPDATE bat SET Status=:Status WHERE id=:id""",{'id':data[1],'Status':"Done"})
+        con.commit()
+        con.close()
+
         exel.create_report(self.get())
         self.print_exel()
         
-
-
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+        self.allrows = db.GetAll()
+        self.tree_data = [[0] + list(row) for row in self.allrows]
+        for i in range(len(self.tree_data)):
+            self.tree.insert("", "end", values=self.tree_data[i], tags=("readonly",))
 
     def toggle_value(self, event):
-        row = self.tree.focus()
-        selected_item = self.tree.selection()[0]
-        values = self.tree.item(selected_item, 'values')
-        f_value = values[0]
-        if event.char == "1" and f_value == "0":
-            value = "1"
-            self.cc=self.cc+1
-            self.count.set(str(self.cc)+" data marked")
-        elif event.char == "0" and f_value == "1":
-            value = "0"
-            self.cc=self.cc-1
-            self.count.set(str(self.cc)+" data marked")
-        else:
-            return
-        self.tree.set(row, 0, value)
+        selected_items = self.tree.selection()
+        for selected_item in selected_items:
+            values = self.tree.item(selected_item, 'values')
+            f_value = values[0]
+            if event.char == "1" and f_value == "0":
+                value = "1"
+                self.cc = self.cc + 1
+            elif event.char == "0" and f_value == "1":
+                value = "0"
+                self.cc = self.cc - 1
+            else:
+                continue
+            self.tree.set(selected_item, 0, value)
+        
+        self.count.set(str(self.cc) + " data marked")
 
     def get(self):
         # Return the values in the table as a list of lists
@@ -788,49 +789,56 @@ class Window(tk.Toplevel):
             row = self.tree.item(child)["values"]
             if row[0] == 1:
                 values.append(row)
-
-
         return values
 
-
     def printing(self):
+        con=lite.connect("batch.db")
+        cur=con.cursor()
+        for data in self.get():
+            cur.execute("""UPDATE bat SET Status=:Status WHERE id=:id""",{'id':data[1],'Status':"Done"})
+        con.commit()
+        con.close()
+
         report2.create_report(self.get())
         self.print_pdf()
+        self.allrows = db.GetAll()
+        
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+        self.tree_data = [[0] + list(row) for row in self.allrows]
+        for i in range(len(self.tree_data)):
+            self.tree.insert("", "end", values=self.tree_data[i], tags=("readonly",))
 
     def delcheck(self):
-        nos=len([x[1] for x in self.get()])
+        nos = len([x[1] for x in self.get()])
         try:
-            if nos!=0:
-                MsgBox = tk.messagebox.askquestion ('Are You Sure','Do you want to delete '+str(nos)+' number of data',icon = 'question')
+            if nos != 0:
+                MsgBox = tk.messagebox.askquestion('Are You Sure', 'Do you want to delete ' + str(nos) + ' number of data', icon='question')
                 if MsgBox == 'yes':
                     self.delsel()
-                    MsgBox = tk.messagebox.showinfo("Done", str(nos)+" number of data deleted")
-
+                    MsgBox = tk.messagebox.showinfo("Done", str(nos) + " number of data deleted")
                 else:
                     pass
             else:
                 pass
-
         except:
             pass
 
     def delsel(self):
-
         db.delid([x[1] for x in self.get()])
-
 
         for row in self.tree.get_children():
             self.tree.delete(row)
 
         # Reload all rows
         self.allrows = db.GetAll()
-        data = [[0] + list(row) for row in self.allrows]
+        self.tree_data = [[0] + list(row) for row in self.allrows]
 
-        for i in range(len(data)):
-            self.tree.insert("", "end", values=data[i], tags=("readonly",))
+        for i in range(len(self.tree_data)):
+            self.tree.insert("", "end", values=self.tree_data[i], tags=("readonly",))
         self.tree.tag_configure("readonly", background="#f0f0f0")
-        self.cc=0
-        self.count.set(str(self.cc)+" data marked")
+        self.cc = 0
+        self.count.set(str(self.cc) + " data marked")
 
     def print_exel(self):
         filename = "packing_list.xlsx"
@@ -839,9 +847,30 @@ class Window(tk.Toplevel):
 
     def print_pdf(self):
         filename = "packing_list.pdf"
-
         # Open the PDF file using the default PDF viewer
         subprocess.run(["start", filename], shell=True)
+
+    def filter_data(self, selection):
+        # Save the current values of the first column (checkbox column)
+        checkbox_values = {self.tree.item(row)["values"][1]: self.tree.item(row)["values"][0] for row in self.tree.get_children()}
+
+        # Clear the treeview
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+
+        # Filter rows based on selection
+        if selection == "All":
+            filtered_data = self.allrows
+        else:
+            filtered_data = [row for row in self.allrows if row[-1] == selection]
+
+        # Add filtered rows and restore checkbox values
+        self.tree_data = [[0] + list(row) for row in filtered_data]
+        for row in self.tree_data:
+            row[0] = checkbox_values.get(row[1], 0)  # Restore checkbox value or default to 0
+            self.tree.insert("", "end", values=row, tags=("readonly",))
+        self.tree.tag_configure("readonly", background="#f0f0f0")
+
 
 
 class PageOne(tk.Frame):
@@ -1113,8 +1142,8 @@ class PageOne(tk.Frame):
                                   highlightcolor='yellow', font=field_font, justify='center', exportselection=0).grid(
             row=14, column=1, padx=3, pady=1)
         self.barsizecb = ttk.Combobox(frame2, textvariable=self.barsize, font=Label1_font, width=3, state="readonly")
-        self.barsizecb["values"] = self.lint()
-        self.barsizecb.current(50)
+        self.barsizecb["values"] = [1,2,3,4,5,6,7,8,9,10]
+        self.barsizecb.current(5)
         self.barsizecb.grid(row=14, column=2, padx=3)
 
         self.barswcb = ttk.Combobox(frame2, textvariable=self.barsw, font=Label1_font, width=3, state="readonly")
@@ -1218,7 +1247,7 @@ class PageOne(tk.Frame):
         self.y10.set(int(fixrow[40]))
 
         self.bar.set(fixrow[41])
-        self.barsizecb.current(int(fixrow[42]) - 10)
+        self.barsizecb.current(int(fixrow[42]) - 1)
         if fixrow[43] == "N":
             tig = 0
         else:

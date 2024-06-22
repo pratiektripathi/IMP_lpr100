@@ -14,7 +14,7 @@
 ^FXNow some text^FS
 ^FO150,200
 ^A0N,35
-^FD Gross Wt.: 210.000^FS
+^FD Gross Wt.: 16.000^FS
 ^FXNow some text^FS
 ^FO150,250
 ^A0N,30
@@ -26,7 +26,7 @@
 ^FXNow some text^FS
 ^FO150,350
 ^A0N,30
-^FD Net Wt: 209.240^FS
+^FD Net Wt: 15.240^FS
 ^FXNow some text^FS
 ^FO500,280
 ^A0N,30
@@ -44,9 +44,5 @@
 ^FO510,320
 ^A0N,70
 ^FB140,1,0,C,0
-^FD 23^FS
-^FXBarcode and text^FS
-^FO50,370
-^BCN,80,N
-^FD 23*PRATEEK^FS
+^FD 33^FS
 ^XZ

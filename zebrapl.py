@@ -176,7 +176,7 @@ def zeepl(wt):
                 win32print.StartPagePrinter(hprinter)
                 for i in range(0, Copy):
                     win32print.WritePrinter(hprinter, raw_data)
-                db.SaveBatching(plno, Party, Variety, RollNo, weight, CoreWt, TareWt, NetWt)
+                db.SaveBatching(plno, Party, Variety, RollNo, weight, CoreWt, TareWt, NetWt,"Pending")
 
                 win32print.EndPagePrinter(hprinter)
             finally:

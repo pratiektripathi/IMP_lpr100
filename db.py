@@ -94,12 +94,16 @@ def loadPrint():
 
 
 
-def SaveBatching(plno, Party, Variety,RollNo,GrossWt,CoreWt, TareWt,  NetWt):
+def SaveBatching(plno, Party, Variety,RollNo,GrossWt,CoreWt, TareWt,  NetWt,Status):
     con=lite.connect("batch.db")
     cur=con.cursor()
-    cur.execute("""INSERT INTO bat (plno, Party, Variety,RollNo,GrossWt,CoreWt, TareWt, NetWt) VALUES (?,?,?,?,?,?,?,?)""",(plno, Party, Variety,RollNo,GrossWt,CoreWt, TareWt, NetWt))
+    cur.execute("""INSERT INTO bat (plno, Party, Variety,RollNo,GrossWt,CoreWt, TareWt, NetWt,Status) VALUES (?,?,?,?,?,?,?,?,?)""",(plno, Party, Variety,RollNo,GrossWt,CoreWt, TareWt, NetWt,Status))
     con.commit()
     con.close()
+
+
+
+
     
     
 def GetBatchData(plno):
