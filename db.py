@@ -94,22 +94,19 @@ def loadPrint():
 
 
 
-def SaveBatching(plno, Party, Variety,RollNo,GrossWt,CoreWt, TareWt,  NetWt,Status):
+def SaveBatching(LotNo,RollNo,Party, Variety,GrossWt, TareWt,CoreWt, NetWt,Date,Status):
     con=lite.connect("batch.db")
     cur=con.cursor()
-    cur.execute("""INSERT INTO bat (plno, Party, Variety,RollNo,GrossWt,CoreWt, TareWt, NetWt,Status) VALUES (?,?,?,?,?,?,?,?,?)""",(plno, Party, Variety,RollNo,GrossWt,CoreWt, TareWt, NetWt,Status))
+    cur.execute("""INSERT INTO bat (LotNo,RollNo,Party,Variety,GrossWt,TareWt,CoreWt,NetWt,Date,Status) VALUES (?,?,?,?,?,?,?,?,?,?)""",(LotNo,RollNo,Party, Variety,GrossWt, TareWt,CoreWt, NetWt,Date,Status))
     con.commit()
     con.close()
 
 
 
-
-    
-    
-def GetBatchData(plno):
+def GetBatchData(LotNo):
     con=lite.connect("batch.db")
     cur=con.cursor()
-    cur.execute("SELECT plno, Party, Variety,RollNo,GrossWt,CoreWt, TareWt, NetWt FROM bat WHERE plno=:plno",{'plno':plno})
+    cur.execute("SELECT LotNo,RollNo,Party,Variety,GrossWt,TareWt,CoreWt,NetWt,Date,Status FROM bat WHERE LotNo=:LotNo",{'plno':LotNo})
     rows=cur.fetchall()
     con.close()
     return rows
@@ -123,15 +120,7 @@ def GetAll():
     con.close()
     return rows
 
-# def get_shorted_batch(plno, Party, Variety,RollNo,GrossWt,CoreWt, TareWt,  NetWt):
-#     con=lite.connect("batch.db")
-#     cur=con.cursor()
-#     sql_query="SELECT plno, Party, Variety,RollNo,GrossWt,CoreWt, TareWt, NetWt FROM bat WHERE"
-#
-#     cur.execute("SELECT plno, Party, Variety,RollNo,GrossWt,CoreWt, TareWt, NetWt FROM bat WHERE plno=:plno",{'plno':plno})
-#     rows=cur.fetchall()
-#     con.close()
-#     return rows
+
 
 
 
@@ -222,8 +211,7 @@ def reset():
 
 
 def suid(uid):
-    # initializing data to be stored in db
-
+    
     master = {'uid': uid}
     # Its important to use binary mode
     static = open('uid.dat', 'wb')

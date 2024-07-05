@@ -13,8 +13,8 @@ def create_report(cdata):
     sno = 1
     party_data = {}
     for row in cdata:
-        party = row[3]
-        variety = row[4]
+        party = row[4]
+        variety = row[5]
         if party not in party_data:
             party_data[party] = {}
         if variety not in party_data[party]:
@@ -27,7 +27,12 @@ def create_report(cdata):
         party_data[party][variety]['total_core_wt'] += core_wt
         party_data[party][variety]['total_net_wt'] += net_wt
 
-        del row[1:5]
+        del row[10:]
+        del row[1:3]
+        del row[2:4]
+        
+        
+
         row[0] = sno
         sno += 1
         party_data[party][variety]['data'].append(row)
@@ -45,7 +50,7 @@ def create_report(cdata):
     story = []
 
     # Add the title
-    story.append(Paragraph("PIONEER PACKAGERS PVT. LTD.", style_title))
+    story.append(Paragraph("ADITYA FLEXIPACK PVT LTD", style_title))
     story.append(Paragraph(xdate, style_table_data))
 
     # Loop over each party and create a separate table

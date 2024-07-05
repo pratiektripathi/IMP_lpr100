@@ -19,6 +19,7 @@ import report2
 import templete as temp
 import zebrapl
 import sqlite3 as lite
+import pandas as pd
 
 
 xuid=0
@@ -179,7 +180,7 @@ class MainApp(tk.Tk):
 
         self.frames = {}
 
-        for F in (StartPage, ComPage, PageOne, PageTwo, PageThree):
+        for F in (StartPage, ComPage, StkSetPage, PasswordPage, PageThree,JobPage):
             frame = F(container, self)
 
             self.frames[F] = frame
@@ -202,8 +203,8 @@ class MainApp(tk.Tk):
 
 
     def ext(self):
-        self.frames[PageOne].close()
-        self.frames[PageTwo].close()
+        self.frames[StkSetPage].close()
+        self.frames[PasswordPage].close()
         self.frames[PageThree].close()
 
         #         self.frames[PageFive].close()
@@ -470,7 +471,7 @@ class StartPage(tk.Frame):
 
 
 
-        self.f1.set("PIONEER PACKAGERS")
+        self.f1.set("ADITYA FLEXIPACK PVT LTD")
         self.f2.set("Job Name.:"+Variety)
         self.f3.set("Gross wt.:"+weight)
         self.f4.set("Core wt.:"+CoreWt)
@@ -561,7 +562,7 @@ class StartPage(tk.Frame):
                 Rollno = str(pitrow[6])
                 xdate = str(pitrow[7])
 
-                self.f1.set("PIONEER PACKAGERS")
+                self.f1.set("ADITYA FLEXIPACK PVT LTD")
                 self.f2.set("Job Name.:" + Variety)
                 self.f3.set("Gross wt.:" + weight)
                 self.f4.set("Core wt.:" + CoreWt)
@@ -592,7 +593,7 @@ class StartPage(tk.Frame):
 
     def Change(self):
         self.controller.frames[PageThree].F1()
-        self.controller.frames[PageThree].feild_1_value.focus_set()
+        # self.controller.frames[PageThree].feild_1_value.focus_set()
 
 
     def refresh(self):
@@ -617,7 +618,7 @@ class StartPage(tk.Frame):
 
 
 
-        self.f1.set("PIONEER PACKAGERS")
+        self.f1.set("ADITYA FLEXIPACK PVT LTD")
         self.f2.set("Job Name.:"+Variety)
         self.f3.set("Gross wt.:"+weight)
         self.f4.set("Core wt.:"+CoreWt)
@@ -627,8 +628,550 @@ class StartPage(tk.Frame):
         self.f7.set(xdate)
 
     def reporter(self):
-        window=Window(self)
+        window=Report(self)
         window.grab_set()
+
+
+
+
+class Report(tk.Toplevel):
+
+    def __init__(self, parent, **kwargs):
+        tk.Toplevel.__init__(self, parent,**kwargs,bg="#ADD8E0")
+
+
+        self.geometry(str(self.winfo_screenwidth())+"x"+str(self.winfo_screenheight()))
+        self.state('zoomed')
+        self.iconbitmap('myicon.ico')
+        self.focus_set()
+        self.title("REPORTS")
+        self.count = tk.StringVar()
+        self.cc = 0
+        self.count.set(str(self.cc) + " data marked")
+        
+
+
+        label_font = Font(family="Arquitecta", size=10)
+        field_font = Font(family="Arquitecta", size=8)
+        fieldx_font = Font(family="Arquitecta", size=10)
+        
+
+        frame_but = tk.Frame(self, bg="#ADD8E0")
+        frame_but.pack(fill="both", expand=True, padx=30, pady=10,anchor="e")
+
+        frame_top = tk.Frame(self, bg="white")
+        frame_top.pack(fill="both", expand=True, padx=10, pady=10)
+
+        botom_frame=tk.Frame(self,bg="#ADD8E0")
+        botom_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        self.errlb = tk.Label(frame_but, textvariable=self.count, fg="black", bg='white', width=30, font=field_font)
+        self.errlb.grid(row=0, column=0)
+
+        self.markall = tk.Button(frame_but, text='mark all', width=20, bg='white', activebackground='white',
+                                 activeforeground='black', command=lambda: self.mall())
+        self.markall.grid(row=0, column=2,padx=4)
+
+        self.umarkall = tk.Button(frame_but, text='unmark all', width=20, bg='white', activebackground='white',
+                                  activeforeground='black', command=lambda: self.umall())
+        self.umarkall.grid(row=0, column=3,padx=4)
+
+
+        start_ticket_label = tk.Label(frame_but,font=label_font, text="Start Roll No : ", bg="#ADD8E0")
+        start_ticket_label.grid(row=2, column=0, sticky="w")
+
+        self.start_ticket_var = tk.StringVar()
+        self.start_ticket_entry = ttk.Entry(frame_but,font=field_font, textvariable=self.start_ticket_var, width=10,validate="key")
+        self.start_ticket_entry['validatecommand'] = (self.start_ticket_entry.register(self.validate_positive_int), '%P')
+        self.start_ticket_entry.grid(row=2, column=1, padx=5, pady=2, sticky="w")
+
+        end_ticket_label = tk.Label(frame_but,font=label_font, text="End Roll No : ", bg="#ADD8E0")
+        end_ticket_label.grid(row=3, column=0, sticky="w")
+
+        self.end_ticket_var = tk.StringVar()
+        self.end_ticket_entry = ttk.Entry(frame_but,font=field_font, textvariable=self.end_ticket_var,width=10, validate="key")
+        self.end_ticket_entry['validatecommand'] = (self.end_ticket_entry.register(self.validate_positive_int), '%P')
+        self.end_ticket_entry.grid(row=3, column=1, padx=5, pady=2, sticky="w")
+
+
+
+        start_date_label = tk.Label(frame_but,font=label_font, text="Start Date : ", bg="#ADD8E0")
+        start_date_label.grid(row=2, column=2, sticky="w")
+
+        self.start_date_entry = DateEntry(frame_but,font=field_font,state="readonly",background="darkblue",
+                                          foreground="white", date_pattern="dd-mm-yyyy", borderwidth=2)
+        self.start_date_entry.grid(row=2, column=3, padx=5, pady=2, sticky="w")
+
+        # Add the End Date label and DateEntry
+        end_date_label = tk.Label(frame_but,font=label_font, text="End Date : ", bg="#ADD8E0")
+        end_date_label.grid(row=3, column=2, sticky="w")
+
+        self.end_date_entry = DateEntry(frame_but,font=field_font, background="darkblue",state="readonly", date_pattern="dd-mm-yyyy",
+                                        foreground="white", borderwidth=2)
+        self.end_date_entry.grid(row=3, column=3, padx=5, pady=2, sticky="w")
+
+
+        party_name_label = tk.Label(frame_but,font=label_font, text="Party Name : ", bg="#ADD8E0")
+        party_name_label.grid(row=3, column=4, sticky="w")
+
+        self.party_name_var = tk.StringVar()
+        self.party_name_entry = ttk.Entry(frame_but,font=field_font, textvariable=self.party_name_var,width=50)
+        self.party_name_entry.grid(row=3, column=5, padx=5, pady=2, sticky="w",columnspan=3)
+
+        material_label = tk.Label(frame_but,font=label_font, text="Job Name: ", bg="#ADD8E0")
+        material_label.grid(row=2, column=4, sticky="w")
+
+        self.material_var = tk.StringVar()
+        self.material_entry = ttk.Entry(frame_but,font=field_font, textvariable=self.material_var,width=50)
+        self.material_entry.grid(row=2, column=5, padx=5, pady=2, sticky="w",columnspan=3)
+
+
+        F_label = tk.Label(frame_but,font=label_font, text="Status :", bg="#ADD8E0")
+        F_label.grid(row=2, column=8,pady=10,padx=10,sticky="e")
+
+        self.combobox_var = tk.StringVar()
+        self.combobox = ttk.Combobox(frame_but, textvariable=self.combobox_var,font=field_font,width=8, values=["Done", "All","Pending"], state="readonly")
+        self.combobox.grid(row=2, column=9,sticky="w", padx=10, pady=10)
+
+
+
+        sql_data=db.GetAll()
+        
+        self.df = pd.DataFrame(sql_data)
+        self.df.insert(0,"Mark","") 
+        
+    
+
+
+
+        treeview_width = int((self.winfo_screenwidth())/1.55)
+   
+        self.treeview = ttk.Treeview(frame_top, columns=("Mark","ID","Lot No","Roll No",
+             "PartyName", "Job Name","GrossWeight", "TareWeight","CoreWeight" ,"NetWeight","Date","Status"
+        ),height=22,selectmode="extended")
+        self.treeview.column("#0", minwidth=0, width=0, stretch=False, anchor="center")
+        self.treeview.column("Mark", minwidth=int(treeview_width * 0.05), width=int(treeview_width * 0.05), stretch=False, anchor="center")
+        self.treeview.column("ID", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("Lot No", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("Roll No", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("PartyName", minwidth=int(treeview_width * 0.3), width=int(treeview_width * 0.3), stretch=False, anchor="center")
+        self.treeview.column("Job Name", minwidth=int(treeview_width * 0.3), width=int(treeview_width * 0.3), stretch=False, anchor="center")
+        self.treeview.column("GrossWeight", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("TareWeight", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("CoreWeight", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("NetWeight", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("Date", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("Status", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        # Add headings
+        self.treeview.heading("ID", text="ID")
+        self.treeview.heading("Mark", text="Mark")
+        self.treeview.heading("Lot No", text="Lot No")
+        self.treeview.heading("Roll No", text="Roll No")
+        self.treeview.heading("PartyName", text="PartyName")
+        self.treeview.heading("Job Name", text="Job Name")
+        self.treeview.heading("GrossWeight", text="GrossWeight")
+        self.treeview.heading("TareWeight", text="TareWeight")
+        self.treeview.heading("CoreWeight", text="CoreWeight")
+        self.treeview.heading("NetWeight", text="NetWeight")
+        self.treeview.heading("Date", text="Date")
+        self.treeview.heading("Status", text="Status")
+
+
+        self.treeview.bind("<KeyPress-1>", self.toggle_value)
+        self.treeview.bind("<KeyPress-0>", self.toggle_value)
+        self.treeview.bind("<Double-1>", self.toggle_value)
+
+
+        # Set the focus on the first cell of the second column
+        self.treeview.focus_set()
+
+
+        vsb = ttk.Scrollbar(frame_top, orient="vertical", command=self.treeview.yview)
+        self.treeview.configure(yscrollcommand=vsb.set)
+        vsb.pack(side="right", fill="y")
+
+        # Create the horizontal scrollbar
+        scrollbar_x = ttk.Scrollbar(frame_top, orient="horizontal", command=self.treeview.xview)
+        scrollbar_x.pack(side="bottom",fill="x")
+        self.treeview.configure(xscrollcommand=scrollbar_x.set)
+
+
+        self.treeview.pack(side="left", fill="both", expand=True, padx=5, pady=1)
+
+
+
+        label_frame=tk.LabelFrame(botom_frame,bg="#ADD8E0")
+        label_frame.pack(side="left")
+
+        self.label1=tk.StringVar()
+        self.label2=tk.StringVar()
+        self.label3=tk.StringVar()
+        self.label_1=tk.Label(label_frame,textvariable=self.label1,font=fieldx_font,bg="#ADD8E0")
+        self.label_1.grid(row=0,column=0,sticky="w")
+        self.label_2=tk.Label(label_frame,textvariable=self.label2,font=fieldx_font,bg="#ADD8E0")
+        self.label_2.grid(row=0,column=1,sticky="w")
+        self.label_3=tk.Label(label_frame,textvariable=self.label3,font=fieldx_font,bg="#ADD8E0")
+        self.label_3.grid(row=0,column=2,sticky="w")
+
+        self.label4=tk.StringVar()
+        self.label_4=tk.Label(label_frame,textvariable=self.label4,font=fieldx_font,bg="#ADD8E0")
+        self.label_4.grid(row=0,column=3,sticky="w")
+        self.label5=tk.StringVar()  
+        self.label_5=tk.Label(label_frame,textvariable=self.label5,font=fieldx_font,bg="#ADD8E0")
+        self.label_5.grid(row=0,column=4,sticky="w")
+
+
+        self.label1.set(f"Selected Rolls |\n{0}")
+        self.label2.set(f"Selected Gross Weight |\n{0} KG")
+        self.label3.set(f"Selected Tare Weight |\n{0} KG")
+        self.label4.set(f"Selected Core Weight |\n{0} KG")
+        self.label5.set(f"Selected Net Weight  \n{0} KG")
+
+
+
+        self.party_name_var.trace('w', lambda *args: self.auto_capitalize(self.party_name_var))
+        self.material_var.trace('w', lambda *args: self.auto_capitalize(self.material_var))
+
+
+        # -------------------------button---------------------------
+
+        button_frame=tk.Frame(botom_frame,bg="#ADD8E0")
+        button_frame.pack(side="right")
+
+
+
+        image2 = Image.open("res/clear.jpg")
+        button_image2 = ImageTk.PhotoImage(image2)
+
+
+        image3 = Image.open("res/print.jpg")
+        button_image3 = ImageTk.PhotoImage(image3)
+
+        image4 = Image.open("res/exit.jpg")
+        button_image4 = ImageTk.PhotoImage(image4)
+
+        image5 = Image.open("res/printxl.jpg")
+        button_image5 = ImageTk.PhotoImage(image5)
+
+        
+
+
+
+        button2 = tk.Button(button_frame,relief="groove", image=button_image2, compound="left",command=lambda:self.clr())
+        button2.image = button_image2  # Store the image reference
+        button2.bind("<Return>", lambda e: self.clr())
+        button2.grid(row=0,column=3,rowspan=3,padx=10, pady=10)
+
+
+        button4 = tk.Button(button_frame,relief="groove", image=button_image4, compound="left",command=lambda:self.close())
+        button4.image = button_image4  # Store the image reference
+        button4.bind("<Return>", lambda e: self.close())
+        button4.grid(row=0,column=4,rowspan=3, padx=10, pady=10)
+
+
+        button3 = tk.Button(button_frame,relief="groove", image=button_image3, compound="left",command=lambda:self.printing("pdf"))
+        button3.image = button_image3  # Store the image reference
+        button3.bind("<Return>", lambda e: self.printing("pdf"))
+        button3.grid(row=0,column=5,rowspan=3, padx=10, pady=10)
+
+
+
+
+        button5 = tk.Button(button_frame,relief="groove", image=button_image5, compound="left",command=lambda:self.printing("xl"))
+        button5.image = button_image5  # Store the image reference
+        button5.bind("<Return>", lambda e: self.printing("xl"))
+        button5.grid(row=0,column=6,rowspan=3, padx=10, pady=10)
+        
+
+
+        self.delete_button = tk.Button(button_frame, text="Delete", command=lambda:self.delete_selected_record())
+        self.delete_button.grid(row=0,column=1,rowspan=3, padx=10, pady=10)
+        self.delete_button.grid_remove()  # Hide the button initially
+
+
+
+        self.bind("<Alt_L>"+"<E>",lambda e:self.toggle_buttons_visibility())
+        self.bind("<Alt_L>"+"<e>",lambda e:self.toggle_buttons_visibility())
+
+
+
+
+        self.clr()
+        self.refresh_data(self.df)
+
+
+        self.start_ticket_var.trace_add("write", lambda *args: self.view_report())
+        self.end_ticket_var.trace_add("write", lambda *args: self.view_report())
+        self.start_date_entry.bind("<<DateEntrySelected>>", lambda event: self.view_report())
+        self.end_date_entry.bind("<<DateEntrySelected>>", lambda event: self.view_report())
+        self.party_name_var.trace_add("write", lambda *args: self.view_report())
+        self.material_var.trace_add("write", lambda *args: self.view_report())
+        self.combobox_var.trace_add("write", lambda *args: self.view_report())
+
+    def toggle_buttons_visibility(self):
+        if self.delete_button.winfo_viewable():    
+            self.delete_button.grid_remove()
+        else:     
+            self.delete_button.grid()
+
+  
+
+    def delete_selected_record(self):
+        selected_item = self.treeview.focus() 
+        values = self.treeview.item(selected_item, "values")
+        MsgBox = tk.messagebox.askquestion ('Are You Sure','Do you want to delete '+"roll no.:"+str(values[0])+"\nrecord:"+str(values),icon = 'question')
+        if MsgBox == 'yes':
+            db.delone(values[0])
+            MsgBox = tk.messagebox.showinfo("Done","roll no.:"+str(values[0])+"data deleted")
+            self.df.drop(self.df[self.df[0] == int(values[0])].index, inplace=True)
+            self.refresh_data(self.df)
+            
+        else:
+            pass
+        
+
+
+
+    def validate_positive_int(self, value):
+        if value.isdigit() or value == "":
+            return True
+        return False
+
+
+    def auto_capitalize(self, variable):
+        value = variable.get()
+        variable.set(value.upper())
+
+    def toggle_value(self, event):
+        selected_items = self.treeview.selection()
+        for selected_item in selected_items:
+            values = self.treeview.item(selected_item, 'values')
+            f_value = values[0]
+            if event.char=="??":
+                if f_value=="":
+                    event.char="1"
+                else:
+                    event.char="0"
+            index = int(self.treeview.item(selected_item, 'text'))  # Get the index from the Treeview's text property
+            if event.char == "1" and f_value == "":
+                value = "✔"
+                self.df.at[index, 'Mark'] = "✔"  # Update DataFrame
+                self.cc += 1
+            elif event.char == "0" and f_value == "✔":
+                value = ""
+                self.df.at[index, 'Mark'] = ""  # Update DataFrame
+                self.cc -= 1
+            else:
+                continue
+            self.treeview.set(selected_item, 'Mark', value)
+
+        self.count.set(str(self.cc) + " data marked")
+        self.calculate_weights()
+    
+    def calculate_weights(self):
+        
+        selected_rows = self.df[self.df["Mark"] == "✔"]
+
+        sum_grossweight = pd.to_numeric(selected_rows[5], errors='coerce').sum()
+        sum_tareweight = pd.to_numeric(selected_rows[6], errors='coerce').sum()
+        sum_coreweight = pd.to_numeric(selected_rows[7], errors='coerce').sum()
+        sum_netweight = pd.to_numeric(selected_rows[8], errors='coerce').sum()
+
+        self.label1.set(f"Selected Rolls |\n{self.cc}")
+        self.label2.set(f"Selected Gross Weight |\n{round(sum_grossweight, 3)} KG")
+        self.label3.set(f"Selected Tare Weight |\n{round(sum_tareweight, 3)} KG")
+        self.label4.set(f"Selected Core Weight |\n{round(sum_coreweight, 3)} KG")
+        self.label5.set(f"Selected Net Weight  \n{round(sum_netweight, 3)} KG")
+
+
+    def refresh_data(self, data):
+        self.treeview.delete(*self.treeview.get_children())
+
+        for index, row in data.iterrows():
+            values = [str(value) for value in row]
+            self.treeview.insert("", index, text=index, values=values)
+
+        
+
+
+
+
+
+    def close(self):
+        self.clr()
+        self.destroy()
+
+
+    def clr(self):
+        # Clear all entry box values
+        self.start_ticket_var.set('')
+        self.end_ticket_var.set('')
+
+        self.start_date_entry.set_date('01-03-2024')
+
+        # Set the end date to the current date
+        current_date = datetime.datetime.now()
+        current_date_str = current_date.strftime("%d-%m-%Y")
+        self.end_date_entry.set_date(current_date_str)
+
+
+        self.party_name_var.set('')
+        self.material_var.set('')
+
+        self.delete_button.grid_remove()
+        # Set the combobox value to "ALL"
+        self.combobox_var.set('All')
+
+        # Call the view_report function to update the treeview based on the cleared values
+        self.view_report()
+
+
+    def view_report(self):
+        # Get the values from the entry boxes and combo box
+        start_ticket = self.start_ticket_var.get()
+        end_ticket = self.end_ticket_var.get()
+        start_date_str = self.start_date_entry.get()
+        end_date_str = self.end_date_entry.get()
+
+        party_name = self.party_name_var.get()
+        material = self.material_var.get()
+        ticket_type = self.combobox_var.get()
+
+        # Check if the start date is less than the current date
+        current_date = datetime.datetime.now().date()
+        start_date = datetime.datetime.strptime(start_date_str, "%d-%m-%Y").date()
+        start_date_str = datetime.datetime.strptime(start_date_str, "%d-%m-%Y").date() if start_date_str else None
+        end_date_str = datetime.datetime.strptime(end_date_str, "%d-%m-%Y").date() if end_date_str else None
+
+
+
+
+        if start_date <= current_date:
+            # Start date is before the current date, proceed with filtering
+            filtered_data = self.df.copy()
+
+
+            def populate_column(row):
+                if row[10]:
+                    return row[10]
+                elif row[8]:
+                    return row[8]
+                else:
+                    return row[10]
+
+            # Apply the custom function to create the fourth column
+            filtered_data[10] = filtered_data.apply(populate_column, axis=1)
+            
+
+
+
+
+
+            if ticket_type == "Done":
+                filtered_data = filtered_data[filtered_data[10] == "Done"]
+            elif ticket_type == "Pending":
+                filtered_data = filtered_data[filtered_data[10] != "Done"]
+
+            if start_ticket:
+                filtered_data = filtered_data[filtered_data[2].astype("Int64") >= int(start_ticket)]
+
+            if end_ticket:
+                filtered_data = filtered_data[filtered_data[2].astype("Int64") <= int(end_ticket)]
+
+
+            filtered_data[9] = pd.to_datetime(filtered_data[9], errors="coerce",dayfirst=True).dt.date
+
+
+
+
+            if start_date_str:
+                filtered_data = filtered_data[(filtered_data[9] >= start_date_str)]
+
+
+            if end_date_str:
+                filtered_data = filtered_data[(filtered_data[9] <= end_date_str)]
+
+
+            if party_name:
+                filtered_data = filtered_data[filtered_data[3].str.contains(party_name, case=False, na=False)]
+
+            if material:
+                filtered_data = filtered_data[filtered_data[4].str.contains(material, case=False, na=False)]
+
+
+            self.refresh_data(filtered_data)
+        else:
+            self.clr()
+            tk.messagebox.showerror("ERROR","Start Date Must Be Less Than End Date")
+            self.refresh_data(self.df)
+
+    def mall(self):
+        for item in self.treeview.get_children():
+            index = int(self.treeview.item(item, 'text'))
+            self.treeview.item(item, values=["✔" if i == 0 else val for i, val in enumerate(self.treeview.item(item)["values"])])
+            self.df.at[index, 'Mark'] = "✔"
+        self.cc = len(self.treeview.get_children())
+        self.count.set(str(self.cc) + " data marked")
+        self.calculate_weights()
+        
+
+    def umall(self):
+        for item in self.treeview.get_children():
+            index = int(self.treeview.item(item, 'text'))
+            self.treeview.item(item, values=["" if i == 0 else val for i, val in enumerate(self.treeview.item(item)["values"])])
+            self.df.at[index, 'Mark'] = ""
+        self.cc = 0
+        self.count.set(str(self.cc) + " data marked")
+        self.calculate_weights()
+
+
+    def printing(self,format):
+        con=lite.connect("batch.db")
+        cur=con.cursor()
+        
+        selected_rows = self.df[self.df["Mark"] == "✔"]
+        ids=selected_rows[0].tolist()
+        
+        
+        for id in ids:        
+            cur.execute("""UPDATE bat SET Status=:Status WHERE id=:id""",{'id':id,'Status':"Done"})
+            
+        con.commit()
+        con.close()
+
+        toprint=selected_rows.copy()
+        
+        if format=="xl":
+            exel.create_report(toprint.values.tolist())
+            self.print_exel()
+        elif format=="pdf":
+            report2.create_report(toprint.values.tolist())
+            self.print_pdf()
+        else:
+            pass
+
+
+
+        
+
+    def print_exel(self):
+        filename = "packing_list.xlsx"
+        # Open the PDF file using the default PDF viewer
+        subprocess.run(["start", filename], shell=True)
+
+
+    def print_pdf(self):
+        filename = "packing_list.pdf"
+        subprocess.run(["start",filename], shell=True)
+
+
+    
+
+
+
+
+
+
 
 class Window(tk.Toplevel):
 
@@ -750,12 +1293,14 @@ class Window(tk.Toplevel):
     def generate_excel(self):
         con=lite.connect("batch.db")
         cur=con.cursor()
+        final_table=[]
         for data in self.get():
             cur.execute("""UPDATE bat SET Status=:Status WHERE id=:id""",{'id':data[1],'Status':"Done"})
+            final_table.append(data[:-1])
         con.commit()
         con.close()
 
-        exel.create_report(self.get())
+        exel.create_report(final_table)
         self.print_exel()
         
         for row in self.tree.get_children():
@@ -794,12 +1339,14 @@ class Window(tk.Toplevel):
     def printing(self):
         con=lite.connect("batch.db")
         cur=con.cursor()
+        final_table=[]
         for data in self.get():
             cur.execute("""UPDATE bat SET Status=:Status WHERE id=:id""",{'id':data[1],'Status':"Done"})
+            final_table.append(data[:-1])
         con.commit()
         con.close()
 
-        report2.create_report(self.get())
+        report2.create_report(final_table)
         self.print_pdf()
         self.allrows = db.GetAll()
         
@@ -873,7 +1420,7 @@ class Window(tk.Toplevel):
 
 
 
-class PageOne(tk.Frame):
+class StkSetPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -1323,6 +1870,114 @@ class ComPage(tk.Frame):
 
         self.field_41_label = tk.Label(frame2, text="auto filter",fg="black",bg='white',font=Label1_font).grid(row=9,column=0, padx=0,pady=0,sticky='w')
         self.feild_41_value= tk.Spinbox(frame2,readonlybackground='white',highlightthickness=2,highlightcolor='yellow',textvariable=self.field4,font=field_font,state='readonly',exportselection=0)
+        self.feild_41_value["values"]=('2','3','4','5','6','8','10','12','14','16','18','20','22','24','28')
+        self.feild_41_value.bind("<Return>", lambda e: self.asktosave())
+        self.feild_41_value.grid(row=9, column=1, padx=1, pady=0, columnspan=2)
+
+
+        self.field_4_label = tk.Label(frame2, text=" \" COM-PORT DETAILS \" ", fg="green", bg='white',
+                                      font=err_font).grid(row=12, column=0, padx=0, pady=0, sticky='w')
+
+        frame2.pack(fill='both', expand=True)
+
+
+
+    def asktosave(self):
+        #        self.save()
+        try:
+            if (len(self.field0.get()) != 0):
+                MsgBox = tk.messagebox.askquestion('Ask To Save', 'Do you want to save?', icon='question')
+                if MsgBox == 'yes':
+                    self.save()
+                else:
+                    pass
+            else:
+                self.errmsg.set("enter valid data")
+
+        except:
+            self.errmsg.set("error saving")
+
+    def save(self):
+        db.ComData(str(self.field0.get()), self.field1.get(), str(self.field2.get()), self.field3.get(), self.field4.get())
+        self.controller.frames[StartPage].refresh()
+        self.close()
+
+    def clr(self):
+        xcom=db.loadCom()
+        self.field0.set(xcom[0])
+        self.field1.set(xcom[1])
+        self.field2.set(xcom[2])
+        self.field3.set(xcom[3])
+        self.field4.set(xcom[4])
+        self.errmsg.set("")
+
+    def close(self):
+        self.clr()
+        self.controller.show_frame(StartPage)
+        self.controller.focus_set()
+
+
+class JobPage(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        frame2 = tk.Frame(self, bg='white')
+
+        self.field0 = tk.StringVar()
+        self.field1 = tk.StringVar()
+        self.field2 = tk.StringVar()
+        self.field3 = tk.StringVar()
+        self.field4 = tk.StringVar()
+        self.controller = controller
+        self.errmsg = tk.StringVar()
+
+        err_font = Font(family="Arquitecta", size=10)
+        Label1_font = Font(family="Arquitecta", size=14)
+        field_font = Font(family="Arquitecta", size=12)
+
+        self.errorlabel = tk.Label(frame2, width=25, height=1, textvariable=self.errmsg, fg="red", bg='white',
+                                   font=err_font)
+        self.errorlabel.grid(row=11, column=0, padx=1, pady=1, columnspan=3)
+
+        self.field_0_label = tk.Label(frame2, text="COM PORT:", fg="black", bg='white', font=Label1_font,
+                                      height=1).grid(row=2, column=0, padx=0, pady=0, sticky='w')
+
+        self.feild_0_value= tk.Spinbox(frame2,readonlybackground='white',highlightthickness=2,highlightcolor='yellow',textvariable=self.field0,font=field_font,state='readonly',exportselection=0)
+        self.feild_0_value["values"]=('COM1','COM2','COM3','COM4','COM5','COM6','COM7','COM8','COM9','COM10')
+        self.feild_0_value.bind("<Return>", lambda e: self.feild_1_value.focus_set())
+        self.feild_0_value.grid(row=2,column=1, padx=5,pady=2,columnspan=3,sticky='w')
+
+
+        self.field_1_label = tk.Label(frame2, text="BAURD RATE:", fg="black", bg='white', font=Label1_font, height=1).grid(
+            row=4, column=0, padx=0, pady=0, sticky='w')
+        self.feild_1_value= tk.Spinbox(frame2,readonlybackground='white',highlightthickness=2,highlightcolor='yellow',textvariable=self.field1,font=field_font,state='readonly',exportselection=0)
+        self.feild_1_value["values"]=('600','1200','2400','4800','9600','19200','38400','76800','153600')
+        self.feild_1_value.bind("<Return>", lambda e: self.feild_2_value.focus_set())
+        self.feild_1_value.grid(row=4, column=1, padx=1, pady=0, columnspan=2)
+
+
+        # field3
+        self.field_2_label = tk.Label(frame2, text="R-find", fg="black", bg='white', font=Label1_font).grid(row=6,
+                                                                                                             column=0,
+                                                                                                             padx=0,
+                                                                                                             pady=0,
+                                                                                                             sticky='w')
+        self.feild_2_value = tk.Entry(frame2, fg="black", bg='white', textvariable=self.field2, highlightthickness=2,
+                                      highlightcolor='yellow', font=field_font, justify='center', exportselection=0)
+        self.feild_2_value.bind("<Return>", lambda e: self.feild_3_value.focus_set())
+        self.feild_2_value.grid(row=6, column=1, padx=1, pady=0, columnspan=2)
+
+
+
+        self.field_3_label = tk.Label(frame2, text="DP",fg="black",bg='white',font=Label1_font).grid(row=8,column=0, padx=0,pady=0,sticky='w')
+        self.feild_3_value= tk.Spinbox(frame2,readonlybackground='white',highlightthickness=2,highlightcolor='yellow',textvariable=self.field3,font=field_font,state='readonly',exportselection=0)
+        self.feild_3_value["values"]=('0','1','2','3','4','5')
+        self.feild_3_value.bind("<Return>", lambda e: self.feild_41_value.focus_set())
+        self.feild_3_value.grid(row=8, column=1, padx=1, pady=0, columnspan=2)
+
+
+        self.field_41_label = tk.Label(frame2, text="auto filter",fg="black",bg='white',font=Label1_font).grid(row=9,column=0, padx=0,pady=0,sticky='w')
+        self.feild_41_value= tk.Spinbox(frame2,readonlybackground='white',highlightthickness=2,highlightcolor='yellow',textvariable=self.field4,font=field_font,state='readonly',exportselection=0)
         self.feild_41_value["values"]=('4','6','8','10','12','14','16','18','20','22','24','28')
         self.feild_41_value.bind("<Return>", lambda e: self.asktosave())
         self.feild_41_value.grid(row=9, column=1, padx=1, pady=0, columnspan=2)
@@ -1370,7 +2025,7 @@ class ComPage(tk.Frame):
         self.controller.focus_set()
 
 
-class PageTwo(tk.Frame):
+class PasswordPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -1399,6 +2054,9 @@ class PageTwo(tk.Frame):
         self.feild_1_value.bind("<Return>", lambda e: self.submit())
         self.feild_1_value.grid(row=4, column=1, padx=6, pady=5)
 
+
+
+
         frame2.pack(fill='both', expand=True)
 
         controller.bind("<Alt_L>" + "<F8>", lambda e: self.F1())
@@ -1406,7 +2064,7 @@ class PageTwo(tk.Frame):
     def F1(self):
         try:
             if (self.controller.hero.get() == "<class '__main__.StartPage'>"):
-                self.controller.show_frame(PageTwo)
+                self.controller.show_frame(PasswordPage)
                 self.clr()
                 self.feild_1_value.focus_set()
 
@@ -1416,9 +2074,9 @@ class PageTwo(tk.Frame):
     def submit(self):
         if (str(self.field1.get()) == "setst" or str(self.field1.get()) == "SETST"):
             self.clr()
-            self.controller.show_frame(PageOne)
-            self.controller.frames[PageOne].feild_1_value.focus_set()
-            self.controller.frames[PageOne].clear()
+            self.controller.show_frame(StkSetPage)
+            self.controller.frames[StkSetPage].feild_1_value.focus_set()
+            self.controller.frames[StkSetPage].clear()
 
         elif (str(self.field1.get()) == "setcom" or str(self.field1.get()) == "SETCOM"):
             self.clr()
@@ -1431,9 +2089,15 @@ class PageTwo(tk.Frame):
             tk.messagebox.showinfo("LICENCE",f"VALUE {data} SAVED... PLEASE RESTART SOFTWARE")
             self.close()
 
-        if (str(self.field1.get()) == "delall" or str(self.field1.get()) == "DELALL"):
-            self.delall()
+        elif (str(self.field1.get()) == "delall" or str(self.field1.get()) == "DELALL"):
+            self.clr()
+            self.controller.show_frame(JobPage)
+            self.controller.frames[JobPage].feild_0_value.focus_set()
+            self.controller.frames[JobPage].clr()
 
+
+        elif (str(self.field1.get()) == "4011"):
+            self.delall()
 
 
 
@@ -1489,7 +2153,6 @@ class PageTwo(tk.Frame):
 
 
 class PageThree(tk.Frame):
-
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         frame2 = tk.Frame(self, bg='white')
@@ -1509,87 +2172,98 @@ class PageThree(tk.Frame):
 
         self.option_add('*TCombobox*Listbox.font', field_font)
 
-
         self.valid = self.register(self.only_int)
-        self.validation=self.register(self.only_number)
-
-
-
+        self.validation = self.register(self.only_number)
 
         self.errorlabel = tk.Label(frame2, width=25, height=1, textvariable=self.errmsg, fg="red", bg='white',
                                    font=err_font)
         self.errorlabel.grid(row=11, column=0, padx=1, pady=1, columnspan=3)
 
+        self.field_0_label = tk.Label(frame2, text="Lot No..:", fg="black", bg='white', font=Label1_font)
+        self.field_0_label.grid(row=3, column=0, padx=0, pady=5, sticky='e')
 
-        self.field_0_label = tk.Label(frame2, text="Lot No..:",fg="black",bg='white',font=Label1_font).grid(row=3,column=0, padx=0,pady=5,sticky='e')
-        #
-        self.feild_0_value = tk.Entry(frame2,fg="black",bg='white', textvariable=self.field0,state='disabled',highlightthickness=2,highlightcolor='yellow',font=field_font,justify='center',exportselection=0)
-        self.feild_0_value.bind("<Return>", lambda e: self.feild_2_value.focus_set())
-        self.feild_0_value.grid(row=3,column=1, padx=1,pady=5,columnspan=2,sticky='w')
+        self.feild_0_value = tk.Entry(frame2, fg="black", bg='white', textvariable=self.field0, state='disabled',
+                                      highlightthickness=2, highlightcolor='yellow', font=field_font, justify='center',
+                                      exportselection=0)
+        self.feild_0_value.bind("<Return>", lambda e: self.feild_2_value.entry.focus_set())
+        self.feild_0_value.grid(row=3, column=1, padx=1, pady=5, columnspan=2, sticky='w')
 
+        self.field_1_label = tk.Label(frame2, text="Party Name:", fg="black", bg='white', font=Label1_font, height=1)
+        self.field_1_label.grid(row=4, column=0, padx=0, pady=5, sticky='e')
 
-
-
-
-        self.field_1_label = tk.Label(frame2, text="Party Name:", fg="black", bg='white', font=Label1_font, height=1).grid(
-            row=4, column=0, padx=0, pady=5, sticky='e')
-
-
-
-        self.feild_1_value= ttk.Combobox(frame2,background='white',height=15,width=45,textvariable=self.field1,font=field_font,state='readonly',exportselection=0)
-
-        self.feild_1_value.bind("<Return>", lambda e: self.feild_2_value.focus_set())
-        self.feild_1_value.grid(row=4,column=1, padx=5,pady=5,columnspan=2,sticky='w')
-
-        # field3
-        self.field_2_label = tk.Label(frame2, text="Job Name:", fg="black", bg='white', font=Label1_font).grid(row=6,
-                                                                                                             column=0,
-                                                                                                             padx=0,
-                                                                                                             pady=5,
-                                                                                                             sticky='e')
+        self.feild_1_value = tk.Entry(frame2, width=50, textvariable=self.field1)
+        self.feild_1_value.bind("<KeyRelease>", self.on_entry_key1)
+        self.feild_1_value.bind("<FocusIn>", self.show_dropdown1)
+        self.feild_1_value.bind("<FocusOut>", self.hide_dropdown1)  # Bind focus out event
+        self.feild_1_value.grid(row=4, column=1, padx=1, pady=5, columnspan=2, sticky='w')
 
 
-        self.feild_2_value=ttk.Combobox(frame2,background='white',height=15,width=45,textvariable=self.field2,state='readonly',font=field_font,exportselection=0)
-        self.feild_2_value.bind("<Return>", lambda e: self.feild_3_value.focus_set())
-        self.feild_2_value.grid(row=6,column=1, padx=1,pady=5,columnspan=2)
+        self.listbox1_popup = tk.Toplevel(parent)
+        self.listbox1_popup.wm_overrideredirect(True)  # Remove window decorations
+        self.listbox1_popup.withdraw()  # Hide initially
+
+        self.listbox1 = tk.Listbox(self.listbox1_popup, height=5, width=30)
+        self.listbox1.pack()
+        self.listbox1.bind("<<ListboxSelect>>", self.on_select1)
+        self.listbox1.bind("<FocusOut>", self.hide_dropdown1)
+ 
+
+        self.field_2_label = tk.Label(frame2, text="Job Name:", fg="black", bg='white', font=Label1_font)
+        self.field_2_label.grid(row=6, column=0, padx=0, pady=5, sticky='e')
+
+        self.feild_2_value = tk.Entry(frame2, width=50, textvariable=self.field2)
+        self.feild_2_value.bind("<KeyRelease>", self.on_entry_key2)
+        self.feild_2_value.bind("<FocusIn>", self.show_dropdown2)
+        self.feild_2_value.bind("<FocusOut>", self.hide_dropdown2)  # Bind focus out event
+        self.feild_2_value.grid(row=6, column=1, padx=1, pady=5, columnspan=2, sticky='w')
 
 
+        self.listbox2_popup = tk.Toplevel(parent)
+        self.listbox2_popup.wm_overrideredirect(True)  # Remove window decorations
+        self.listbox2_popup.withdraw()  # Hide initially
 
+        self.listbox2 = tk.Listbox(self.listbox2_popup, height=5, width=30)
+        self.listbox2.pack()
+        self.listbox2.bind("<<ListboxSelect>>", self.on_select2)
+        self.listbox2.bind("<FocusOut>", self.hide_dropdown2)
+        self.options2=self.load_options('JobName.txt')
 
+        self.field_3_label = tk.Label(frame2, text="Core wt.:", fg="black", bg='white', font=Label1_font)
+        self.field_3_label.grid(row=7, column=0, padx=0, pady=0, sticky='e')
 
-
-
-        self.field_3_label = tk.Label(frame2, text="Core wt.:",fg="black",bg='white',font=Label1_font).grid(row=7,column=0, padx=0,pady=0,sticky='e')
-
-        self.feild_3_value = tk.Entry(frame2,fg="black",bg='white', textvariable=self.field3,validate='key',validatecommand=(self.validation,'%P'), highlightthickness=2,highlightcolor='yellow',font=field_font,justify='center',exportselection=0)
+        self.feild_3_value = tk.Entry(frame2, fg="black", bg='white', textvariable=self.field3, validate='key',
+                                      validatecommand=(self.validation, '%P'), highlightthickness=2,
+                                      highlightcolor='yellow', font=field_font, justify='center', exportselection=0)
         self.feild_3_value.bind("<Return>", lambda e: self.feild_4_value.focus_set())
-        self.feild_3_value.grid(row=7,column=1, padx=1,pady=10,columnspan=2,sticky='w')
+        self.feild_3_value.grid(row=7, column=1, padx=1, pady=10, columnspan=2, sticky='w')
 
+        self.field_4_label = tk.Label(frame2, text="Tare wt.:", fg="black", bg='white', font=Label1_font)
+        self.field_4_label.grid(row=8, column=0, padx=0, pady=5, sticky='e')
 
-        self.field_4_label = tk.Label(frame2, text="Tare wt.:",fg="black",bg='white',font=Label1_font).grid(row=8,column=0, padx=0,pady=5,sticky='e')
-        #
-        self.feild_4_value = tk.Entry(frame2,fg="black",bg='white', textvariable=self.field4,validate='key',validatecommand=(self.validation,'%P'), highlightthickness=2,highlightcolor='yellow',font=field_font,justify='center',exportselection=0)
+        self.feild_4_value = tk.Entry(frame2, fg="black", bg='white', textvariable=self.field4, validate='key',
+                                      validatecommand=(self.validation, '%P'), highlightthickness=2,
+                                      highlightcolor='yellow', font=field_font, justify='center', exportselection=0)
         self.feild_4_value.bind("<Return>", lambda e: self.feild_5_value.focus_set())
-        self.feild_4_value.grid(row=8,column=1, padx=1,pady=5,columnspan=2,sticky='w')
+        self.feild_4_value.grid(row=8, column=1, padx=1, pady=5, columnspan=2, sticky='w')
 
+        self.field_5_label = tk.Label(frame2, text="Start Roll No..:", fg="black", bg='white', font=Label1_font)
+        self.field_5_label.grid(row=9, column=0, padx=0, pady=5, sticky='e')
 
-        self.field_5_label = tk.Label(frame2, text="Start Roll No..:",fg="black",bg='white',font=Label1_font).grid(row=9,column=0, padx=0,pady=5,sticky='e')
-        #
-        self.feild_5_value = tk.Entry(frame2,fg="black",bg='white', textvariable=self.field5, validate='key',validatecommand=(self.valid,'%P'),highlightthickness=2,highlightcolor='yellow',font=field_font,justify='center',exportselection=0)
+        self.feild_5_value = tk.Entry(frame2, fg="black", bg='white', textvariable=self.field5, validate='key',state='disabled',
+                                      validatecommand=(self.valid, '%P'), highlightthickness=2,
+                                      highlightcolor='yellow', font=field_font, justify='center', exportselection=0)
         self.feild_5_value.bind("<Return>", lambda e: self.savebut.focus_set())
-        self.feild_5_value.grid(row=9,column=1, padx=1,pady=5,columnspan=2,sticky='w')
+        self.feild_5_value.grid(row=9, column=1, padx=1, pady=5, columnspan=2, sticky='w')
 
-        self.savebut = tk.Button(frame2, text='Save', width=10,font=field_font, bg='lightgrey', activebackground='lightgrey',
-                                 activeforeground='black', command=lambda: self.asktosave())
-
+        self.savebut = tk.Button(frame2, text='Save', width=10, font=field_font, bg='lightgrey',
+                                 activebackground='lightgrey', activeforeground='black', command=lambda: self.asktosave())
         self.savebut.bind("<Return>", lambda e: self.asktosave())
         self.savebut.grid(row=10, column=1, pady=1)
 
-        self.field_41_label = tk.Label(frame2, text=" \" Save data \" ", fg="green", bg='white',
-                                      font=err_font).grid(row=12, column=0, padx=0, pady=0, sticky='w',columnspan=3)
+        self.field_41_label = tk.Label(frame2, text=" \" Save data \" ", fg="green", bg='white', font=err_font)
+        self.field_41_label.grid(row=12, column=0, padx=0, pady=0, sticky='w', columnspan=3)
 
         frame2.pack(fill='both', expand=True)
-
 
         controller.bind("<F1>", lambda e: self.F1())
         controller.bind("<Alt_L>" + "<m>", lambda e: self.enf0())
@@ -1598,6 +2272,7 @@ class PageThree(tk.Frame):
     def enf0(self):
         if (self.controller.hero.get() == "<class '__main__.PageThree'>"):
             self.feild_0_value.configure(state="normal")
+            self.feild_5_value.configure(state="normal")
 
 
     def only_int(self,char):
@@ -1624,15 +2299,32 @@ class PageThree(tk.Frame):
         return True
 
     def F1(self):
+        if (self.controller.hero.get() == "<class '__main__.StartPage'>"):
+            self.controller.show_frame(PageThree)
+
+            with open('PartyName.txt') as p:
+                self.options1=self.load_options('PartyName.txt')
+                for option in self.options1:
+                    self.listbox1.insert(tk.END, option)
+                self.field1.set(self.listbox1.get(0))
+            with open('JobName.txt') as v:
+                self.options2=self.load_options('JobName.txt')
+                for option in self.options2:
+                    self.listbox2.insert(tk.END, option)
+                self.field2.set(self.listbox2.get(0))
+            self.clr()
+
+            # self.feild_0_value.focus_set()
+
         try:
             if (self.controller.hero.get() == "<class '__main__.StartPage'>"):
                 self.controller.show_frame(PageThree)
 
                 with open('PartyName.txt') as p:
-                    self.feild_1_value["values"]=p.readlines()
+                    self.listbox1["values"]=p.readlines()
                     self.feild_1_value.current(0)
                 with open('JobName.txt') as v:
-                    self.feild_2_value["values"] = v.readlines()
+                    self.listbox2["values"] = v.readlines()
                     self.feild_2_value.current(0)
                 self.clr()
 
@@ -1687,6 +2379,78 @@ class PageThree(tk.Frame):
         self.controller.show_frame(StartPage)
         self.controller.focus_set()
 
+
+    def load_options(self,filename):
+        x=[]
+        with open(filename) as f:
+            for data in f.readlines():
+                x.append(data.strip())
+
+        return x
+    
+    def on_entry_key1(self, event):
+        search_term = self.field1.get().lower()
+        self.listbox1.delete(0, tk.END)
+        for option in self.options1:
+            if search_term in option.lower():
+                self.listbox1.insert(tk.END, option)
+        self.show_dropdown1()
+
+    def on_select1(self, event):
+        if self.listbox1.curselection():
+            self.current_selection1 = self.listbox1.get(self.listbox1.curselection()[0])
+            self.field1.set(self.current_selection1)
+            self.hide_dropdown1()
+            self.feild_1_value.focus_set()  # Move focus to entry1 to trigger FocusOut on listbox1
+            self.controller.focus_set()
+        else:
+            self.hide_dropdown1()
+        
+
+        
+        
+
+    def show_dropdown1(self, event=None):
+        if not self.listbox1_popup.winfo_viewable():
+            x = self.feild_1_value.winfo_rootx()
+            y = self.feild_1_value.winfo_rooty() + self.feild_1_value.winfo_height()
+            self.listbox1_popup.geometry(f"+{x}+{y}")
+            self.listbox1_popup.deiconify()  # Show the Toplevel
+            
+    def hide_dropdown1(self, event=None):
+        self.listbox1_popup.withdraw() 
+
+    def on_entry_key2(self, event):
+        search_term = self.field2.get().lower()
+        self.listbox2.delete(0, tk.END)
+        for option in self.options2:
+            if search_term in option.lower():
+                self.listbox2.insert(tk.END, option)
+        self.show_dropdown2()
+
+    def on_select2(self, event):
+        if self.listbox2.curselection():
+            self.current_selection2 = self.listbox2.get(self.listbox2.curselection()[0])
+            self.field2.set(self.current_selection2)
+            self.hide_dropdown2()
+            self.feild_2_value.focus_set()  # Move focus to entry2 to trigger FocusOut on listbox2
+            self.controller.focus_set()
+        else:
+            self.hide_dropdown2()
+        
+        
+
+    def show_dropdown2(self, event=None):
+        if not self.listbox2_popup.winfo_viewable():
+            x = self.feild_2_value.winfo_rootx()
+            y = self.feild_2_value.winfo_rooty() + self.feild_2_value.winfo_height()
+            self.listbox2_popup.geometry(f"+{x}+{y}")
+            self.listbox2_popup.deiconify()  # Show the Toplevel
+            
+    def hide_dropdown2(self, event=None):
+        self.listbox2_popup.withdraw() 
+
+        
 
 
 

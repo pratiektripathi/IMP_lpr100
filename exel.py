@@ -3,6 +3,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 from openpyxl.styles import PatternFill
 
+
 def create_report(cdata):
 
     today = datetime.datetime.today()
@@ -10,8 +11,8 @@ def create_report(cdata):
     sno = 1
     party_data = {}
     for row in cdata:
-        party = row[3]
-        variety = row[4]
+        party = row[4]
+        variety = row[5]
         if party not in party_data:
             party_data[party] = {}
         if variety not in party_data[party]:
@@ -24,7 +25,13 @@ def create_report(cdata):
         party_data[party][variety]['total_core_wt'] += core_wt
         party_data[party][variety]['total_net_wt'] += net_wt
 
-        del row[1:5]
+   
+        del row[10:]
+        del row[1:3]
+        del row[2:4]
+        
+       
+     
         row[0] = sno
         sno += 1
         party_data[party][variety]['data'].append(row)
@@ -39,7 +46,7 @@ def create_report(cdata):
     # Fill color for the header row
     grey_fill = PatternFill(start_color='D3D3D3', end_color='D3D3D3', fill_type='solid')
 
-    ws['A1'] = "PIONEER PACKAGERES PVT. LTD."
+    ws['A1'] = "ADITYA FLEXIPACK PVT LTD"
     ws.merge_cells('A1:F1')
     ws['A1'].font = title_font
     ws['A1'].alignment = center_alignment

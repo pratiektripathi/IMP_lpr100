@@ -2,7 +2,7 @@ from simple_zpl2 import ZPLDocument, Code128_Barcode, QR_Barcode
 import db
 import sys
 import win32print
-
+from datetime import datetime
 
 
 
@@ -15,6 +15,8 @@ def zeepl(wt):
     CoreWt = itrow[2]
     TareWt = itrow[3]
     xdate = itrow[4]
+    current_date = datetime.now()
+    current_date_str = current_date.strftime("%d-%m-%Y")
 
     weight = str(format(round(float(wt), 2), ".3f"))
     SubWt = float(CoreWt) + float(TareWt)
@@ -176,15 +178,15 @@ def zeepl(wt):
                 win32print.StartPagePrinter(hprinter)
                 for i in range(0, Copy):
                     win32print.WritePrinter(hprinter, raw_data)
-                db.SaveBatching(plno, Party, Variety, RollNo, weight, CoreWt, TareWt, NetWt,"Pending")
-
+                db.SaveBatching(plno,RollNo, Party, Variety,  weight,  TareWt,CoreWt, NetWt,current_date_str,"Pending")
+# LotNo,RollNo,Party, Variety,GrossWt, TareWt,CoreWt, NetWt,Date,Status
                 win32print.EndPagePrinter(hprinter)
             finally:
                 win32print.EndDocPrinter(hprinter)
         finally:
             win32print.ClosePrinter(hprinter)
 
-    #print(PrinterName,Copy)
+
 
     db.srst(int(RollNo + 1))
 

@@ -14,7 +14,7 @@
 ^FXNow some text^FS
 ^FO150,200
 ^A0N,35
-^FD Gross Wt.: 16.000^FS
+^FD Gross Wt.: 25.000^FS
 ^FXNow some text^FS
 ^FO150,250
 ^A0N,30
@@ -26,7 +26,7 @@
 ^FXNow some text^FS
 ^FO150,350
 ^A0N,30
-^FD Net Wt: 15.240^FS
+^FD Net Wt: 24.240^FS
 ^FXNow some text^FS
 ^FO500,280
 ^A0N,30
@@ -34,7 +34,7 @@
 ^FXNow some text^FS
 ^FO600,30
 ^A0N,25
-^FD 04-04-24^FS
+^FD 27-06-24^FS
 ^FXNow some text^FS
 ^FO260,110
 ^A0N,40
@@ -44,5 +44,5 @@
 ^FO510,320
 ^A0N,70
 ^FB140,1,0,C,0
-^FD 33^FS
+^FD 1^FS
 ^XZ
