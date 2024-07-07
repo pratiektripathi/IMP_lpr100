@@ -225,15 +225,6 @@ class MainApp(tk.Tk):
 
 
 
-
-
-
-
-
-
-
-
-
     def checkbt(self):
         if self.am==1:
 
@@ -327,11 +318,6 @@ class MainApp(tk.Tk):
 
 
 
-
-
-
-
-
     def rePrint(self):
         PrintData = db.loadPrint()
         PrinterName = PrintData[0].strip("\n")
@@ -420,11 +406,16 @@ class StartPage(tk.Frame):
 
 
 
+
+
         framec4= tk.Frame(frame2, bg='white')
+
 
         self.validation=self.register(self.only_number)
         self.errlb = tk.Label(frame2, textvariable=self.err, fg="red", bg='white', height=1, width=20,
                               font=err_font).grid(row=12, column=1, padx=6, pady=5)
+        
+
 
 
 
@@ -438,7 +429,7 @@ class StartPage(tk.Frame):
         self.field_3_label.grid_remove()
         self.feild_3_value.grid_remove()
 
-        framec4.grid(row=0, column=0,padx=3,sticky='ew',columnspan=5)
+        framec4.grid(row=1, column=0,padx=3,sticky='ew',columnspan=5)
 
 
         framec2= tk.Frame(frame2, bg='yellow')
@@ -455,7 +446,7 @@ class StartPage(tk.Frame):
         self.field_1_label = tk.Label(framec2, textvariable=self.field1, fg="black", bg='yellow', font=Label1_font)
         self.field_1_label.grid(row=1, column=1,padx=3)
 
-        framec2.grid(row=1, column=0,padx=3,columnspan=5,sticky='ew')
+        framec2.grid(row=2, column=0,padx=3,columnspan=5,sticky='ew')
 
 
         framec1 = tk.Frame(frame2,bg='white')
@@ -499,7 +490,7 @@ class StartPage(tk.Frame):
         self.f7l.grid(row=5, column=1,columnspan = 2,padx=3, pady=1,sticky='')
 
 
-        framec1.grid(row=2,column=0,   padx = 10, pady = 5)
+        framec1.grid(row=3,column=0,   padx = 10, pady = 5)
 
 
 
@@ -521,7 +512,7 @@ class StartPage(tk.Frame):
         self.reportbut.grid(row=1, column=3, padx=5, pady=5 )
 
 
-        framec3.grid(row=3, column=0,padx=3,sticky='ew',columnspan=5)
+        framec3.grid(row=4, column=0,padx=3,sticky='ew',columnspan=5)
 
 
 
@@ -857,36 +848,39 @@ class Report(tk.Toplevel):
 
 
 
-        button2 = tk.Button(button_frame,relief="groove", image=button_image2, compound="left",command=lambda:self.clr())
-        button2.image = button_image2  # Store the image reference
-        button2.bind("<Return>", lambda e: self.clr())
-        button2.grid(row=0,column=3,rowspan=3,padx=10, pady=10)
+        self.button2 = tk.Button(button_frame,relief="groove", image=button_image2, compound="left",command=lambda:self.clr())
+        self.button2.image = button_image2  # Store the image reference
+        self.button2.bind("<Return>", lambda e: self.clr())
+        self.button2.grid(row=0,column=3,rowspan=3,padx=10, pady=10)
 
 
-        button4 = tk.Button(button_frame,relief="groove", image=button_image4, compound="left",command=lambda:self.close())
-        button4.image = button_image4  # Store the image reference
-        button4.bind("<Return>", lambda e: self.close())
-        button4.grid(row=0,column=4,rowspan=3, padx=10, pady=10)
+        self.button4 = tk.Button(button_frame,relief="groove", image=button_image4, compound="left",command=lambda:self.close())
+        self.button4.image = button_image4  # Store the image reference
+        self.button4.bind("<Return>", lambda e: self.close())
+        self.button4.grid(row=0,column=4,rowspan=3, padx=10, pady=10)
 
 
-        button3 = tk.Button(button_frame,relief="groove", image=button_image3, compound="left",command=lambda:self.printing("pdf"))
-        button3.image = button_image3  # Store the image reference
-        button3.bind("<Return>", lambda e: self.printing("pdf"))
-        button3.grid(row=0,column=5,rowspan=3, padx=10, pady=10)
+        self.button3 = tk.Button(button_frame,relief="groove", image=button_image3, compound="left",command=lambda:self.printing("pdf"))
+        self.button3.image = button_image3  # Store the image reference
+        self.button3.bind("<Return>", lambda e: self.printing("pdf"))
+        self.button3.grid(row=0,column=5,rowspan=3, padx=10, pady=10)
 
 
 
 
-        button5 = tk.Button(button_frame,relief="groove", image=button_image5, compound="left",command=lambda:self.printing("xl"))
-        button5.image = button_image5  # Store the image reference
-        button5.bind("<Return>", lambda e: self.printing("xl"))
-        button5.grid(row=0,column=6,rowspan=3, padx=10, pady=10)
+        self.button5 = tk.Button(button_frame,relief="groove", image=button_image5, compound="left",command=lambda:self.printing("xl"))
+        self.button5.image = button_image5  # Store the image reference
+        self.button5.bind("<Return>", lambda e: self.printing("xl"))
+        self.button5.grid(row=0,column=6,rowspan=3, padx=10, pady=10)
+
+        self.button3.grid_remove()  # Hide the button initially
+        self.button5.grid_remove()  # Hide the button initially
         
 
 
-        self.delete_button = tk.Button(button_frame, text="Delete", command=lambda:self.delete_selected_record())
-        self.delete_button.grid(row=0,column=1,rowspan=3, padx=10, pady=10)
-        self.delete_button.grid_remove()  # Hide the button initially
+        # self.delete_button = tk.Button(button_frame, text="Delete", command=lambda:self.delete_selected_record())
+        # self.delete_button.grid(row=0,column=1,rowspan=3, padx=10, pady=10)
+        # self.delete_button.grid_remove()  # Hide the button initially
 
 
 
@@ -909,10 +903,15 @@ class Report(tk.Toplevel):
         self.combobox_var.trace_add("write", lambda *args: self.view_report())
 
     def toggle_buttons_visibility(self):
-        if self.delete_button.winfo_viewable():    
-            self.delete_button.grid_remove()
+        if self.button3.winfo_viewable():    
+            self.button3.grid_remove()
         else:     
-            self.delete_button.grid()
+            self.button3.grid()
+
+        if self.button5.winfo_viewable():    
+            self.button5.grid_remove()
+        else:     
+            self.button5.grid()
 
   
 
@@ -990,6 +989,7 @@ class Report(tk.Toplevel):
         for index, row in data.iterrows():
             values = [str(value) for value in row]
             self.treeview.insert("", index, text=index, values=values)
+            
 
         
 
@@ -1018,7 +1018,7 @@ class Report(tk.Toplevel):
         self.party_name_var.set('')
         self.material_var.set('')
 
-        self.delete_button.grid_remove()
+        # self.delete_button.grid_remove()
         # Set the combobox value to "ALL"
         self.combobox_var.set('All')
 
@@ -1126,7 +1126,7 @@ class Report(tk.Toplevel):
 
 
     def printing(self,format):
-        con=lite.connect("batch.db")
+        con=lite.connect("batch_new.db")
         cur=con.cursor()
         
         selected_rows = self.df[self.df["Mark"] == "✔"]
@@ -1922,7 +1922,6 @@ class JobPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         frame2 = tk.Frame(self, bg='white')
-
         self.field0 = tk.StringVar()
         self.field1 = tk.StringVar()
         self.field2 = tk.StringVar()
@@ -1931,6 +1930,7 @@ class JobPage(tk.Frame):
         self.controller = controller
         self.errmsg = tk.StringVar()
 
+        
         err_font = Font(family="Arquitecta", size=10)
         Label1_font = Font(family="Arquitecta", size=14)
         field_font = Font(family="Arquitecta", size=12)
@@ -1938,85 +1938,116 @@ class JobPage(tk.Frame):
         self.errorlabel = tk.Label(frame2, width=25, height=1, textvariable=self.errmsg, fg="red", bg='white',
                                    font=err_font)
         self.errorlabel.grid(row=11, column=0, padx=1, pady=1, columnspan=3)
-
-        self.field_0_label = tk.Label(frame2, text="COM PORT:", fg="black", bg='white', font=Label1_font,
-                                      height=1).grid(row=2, column=0, padx=0, pady=0, sticky='w')
-
-        self.feild_0_value= tk.Spinbox(frame2,readonlybackground='white',highlightthickness=2,highlightcolor='yellow',textvariable=self.field0,font=field_font,state='readonly',exportselection=0)
-        self.feild_0_value["values"]=('COM1','COM2','COM3','COM4','COM5','COM6','COM7','COM8','COM9','COM10')
-        self.feild_0_value.bind("<Return>", lambda e: self.feild_1_value.focus_set())
-        self.feild_0_value.grid(row=2,column=1, padx=5,pady=2,columnspan=3,sticky='w')
-
-
-        self.field_1_label = tk.Label(frame2, text="BAURD RATE:", fg="black", bg='white', font=Label1_font, height=1).grid(
-            row=4, column=0, padx=0, pady=0, sticky='w')
-        self.feild_1_value= tk.Spinbox(frame2,readonlybackground='white',highlightthickness=2,highlightcolor='yellow',textvariable=self.field1,font=field_font,state='readonly',exportselection=0)
-        self.feild_1_value["values"]=('600','1200','2400','4800','9600','19200','38400','76800','153600')
-        self.feild_1_value.bind("<Return>", lambda e: self.feild_2_value.focus_set())
-        self.feild_1_value.grid(row=4, column=1, padx=1, pady=0, columnspan=2)
-
-
-        # field3
-        self.field_2_label = tk.Label(frame2, text="R-find", fg="black", bg='white', font=Label1_font).grid(row=6,
+        self.field_2_label = tk.Label(frame2, text="ID :", fg="black", bg='white', font=Label1_font)
+        self.field_2_label.grid(row=0, column=0, padx=0, pady=2, sticky='w')
+        self.field_2_value = tk.Entry(frame2, fg="black", bg='white', textvariable=self.field2, highlightthickness=2,state="disabled")
+        self.field_2_value.grid(row=0, column=1, padx=1, pady=2, sticky='w')
+        self.field_0_label = tk.Label(frame2, text="Variety:", fg="black", bg='white', font=Label1_font).grid(row=1,
                                                                                                              column=0,
                                                                                                              padx=0,
-                                                                                                             pady=0,
+                                                                                                             pady=2,
                                                                                                              sticky='w')
-        self.feild_2_value = tk.Entry(frame2, fg="black", bg='white', textvariable=self.field2, highlightthickness=2,
-                                      highlightcolor='yellow', font=field_font, justify='center', exportselection=0)
-        self.feild_2_value.bind("<Return>", lambda e: self.feild_3_value.focus_set())
-        self.feild_2_value.grid(row=6, column=1, padx=1, pady=0, columnspan=2)
+        self.feild_0_value = tk.Entry(frame2, fg="black", bg='white', textvariable=self.field0, highlightthickness=2,
+                                      highlightcolor='yellow',width=50, font=field_font, justify='center', exportselection=0)
+
+        self.feild_0_value.grid(row=1, column=1, padx=1, pady=2, columnspan=4)
+        self.feild_0_value.bind("<KeyRelease>", self.on_entry_key)
+        self.feild_0_value.bind("<Return>", lambda e:self.asktosave())
+
+        self.field_1_label= tk.Label(frame2, text="Start Roll No.", fg="black", bg='white', font=Label1_font)
+        self.field_1_label.grid(row=2, column=0, padx=0, pady=2, sticky='w')
+        self.field_1_value = tk.Entry(frame2, fg="black", bg='white', textvariable=self.field1, highlightthickness=2,state="disabled")
+        self.field_1_value.grid(row=2, column=1, padx=1, pady=2, sticky='w')
+
+        self.save_button = tk.Button(frame2, text="Save", fg="black", bg='white', font=field_font,command=lambda : self.asktosave())
+        self.save_button.grid(row=2, column=4, padx=1, pady=2, sticky='w')
 
 
 
-        self.field_3_label = tk.Label(frame2, text="DP",fg="black",bg='white',font=Label1_font).grid(row=8,column=0, padx=0,pady=0,sticky='w')
-        self.feild_3_value= tk.Spinbox(frame2,readonlybackground='white',highlightthickness=2,highlightcolor='yellow',textvariable=self.field3,font=field_font,state='readonly',exportselection=0)
-        self.feild_3_value["values"]=('0','1','2','3','4','5')
-        self.feild_3_value.bind("<Return>", lambda e: self.feild_41_value.focus_set())
-        self.feild_3_value.grid(row=8, column=1, padx=1, pady=0, columnspan=2)
-
-
-        self.field_41_label = tk.Label(frame2, text="auto filter",fg="black",bg='white',font=Label1_font).grid(row=9,column=0, padx=0,pady=0,sticky='w')
-        self.feild_41_value= tk.Spinbox(frame2,readonlybackground='white',highlightthickness=2,highlightcolor='yellow',textvariable=self.field4,font=field_font,state='readonly',exportselection=0)
-        self.feild_41_value["values"]=('4','6','8','10','12','14','16','18','20','22','24','28')
-        self.feild_41_value.bind("<Return>", lambda e: self.asktosave())
-        self.feild_41_value.grid(row=9, column=1, padx=1, pady=0, columnspan=2)
-
-
-        self.field_4_label = tk.Label(frame2, text=" \" COM-PORT DETAILS \" ", fg="green", bg='white',
-                                      font=err_font).grid(row=12, column=0, padx=0, pady=0, sticky='w')
-
+        treeview_width =500
+        self.treeview = ttk.Treeview(frame2,  height=15, selectmode="extended",show="headings",columns=("ID","Variety","RollNo"))
+        self.treeview.grid(row=4, column=0, padx=1, pady=2, columnspan=5)
+        self.treeview.column("ID", minwidth=int(treeview_width * 0.05), width=int(treeview_width * 0.05), stretch=False, anchor="center")
+        self.treeview.column("Variety", minwidth=int(treeview_width * 0.85), width=int(treeview_width * 0.85), stretch=False, anchor="center")
+        self.treeview.column("RollNo", minwidth=int(treeview_width * 0.10), width=int(treeview_width * 0.10), stretch=False, anchor="center")
+        self.treeview.heading("Variety", text="Variety")
+        self.treeview.heading("RollNo", text="RollNo")
+        self.treeview.heading("ID", text="ID")
         frame2.pack(fill='both', expand=True)
+        self.treeview.bind("<Double-1>", self.onselect)
+        self.reload_data()
+
+
+    def on_entry_key(self, event):
+        search_term = self.field0.get().lower()
+        data=[]
+        for row in self.variety_data:
+            if search_term in row[1].lower():
+                data.append(row)
+        self.refresh_data(data)
+        
+
+    def reload_data(self):
+        self.variety_data=db.loadVariety()
+        self.refresh_data(self.variety_data)
+        self.id=[]
+        for row in self.variety_data:
+            self.id.append(int(row[0]))
+
+    def refresh_data(self, data):
+        self.treeview.delete(*self.treeview.get_children())
+        data=data[::-1]
+        
+        for row in data:
+            self.treeview.insert(parent="", index="end", values=list(row))
+            
+
+    def onselect(self, event):
+        w=self.treeview.selection()
+        for item in w:
+            self.field2.set(self.treeview.item(item, "values")[0])
+            self.field0.set(self.treeview.item(item, "values")[1])
+            self.field1.set(self.treeview.item(item, "values")[2])
 
 
 
     def asktosave(self):
-        #        self.save()
-        try:
-            if (len(self.field0.get()) != 0):
+
+        
+        if (len(self.field0.get()) != 0):
+            if (int(self.field2.get()) in self.id):
+                MsgBox = tk.messagebox.askquestion('Ask To UPDATE', 'Do you want to UPDATE?', icon='question')
+                if MsgBox=='yes':
+                    db.update_Variety(self.field2.get(),self.field0.get(),self.field1.get())
+                    self.reload_data()
+                    self.clr()
+                else:
+                    pass
+                
+            else:
                 MsgBox = tk.messagebox.askquestion('Ask To Save', 'Do you want to save?', icon='question')
                 if MsgBox == 'yes':
                     self.save()
                 else:
                     pass
-            else:
-                self.errmsg.set("enter valid data")
+        else:
+            self.errmsg.set("enter valid data")
 
-        except:
-            self.errmsg.set("error saving")
+        # except:
+        #     self.errmsg.set("error saving")
 
     def save(self):
-        db.ComData(str(self.field0.get()), self.field1.get(), str(self.field2.get()), self.field3.get(), self.field4.get())
-        self.controller.frames[StartPage].refresh()
-        self.close()
+        variety=self.field0.get()
+        rollNo=self.field1.get()
+        db.saveVariety(variety,rollNo)
+        self.reload_data()
+        self.clr()
 
     def clr(self):
-        xcom=db.loadCom()
-        self.field0.set(xcom[0])
-        self.field1.set(xcom[1])
-        self.field2.set(xcom[2])
-        self.field3.set(xcom[3])
-        self.field4.set(xcom[4])
+        self.field0.set("")
+        self.field1.set("0")
+        self.field2.set(self.variety_data[-1][-0]+1)
+ 
         self.errmsg.set("")
 
     def close(self):
@@ -2091,13 +2122,14 @@ class PasswordPage(tk.Frame):
 
         elif (str(self.field1.get()) == "delall" or str(self.field1.get()) == "DELALL"):
             self.clr()
-            self.controller.show_frame(JobPage)
-            self.controller.frames[JobPage].feild_0_value.focus_set()
-            self.controller.frames[JobPage].clr()
+            self.delall()
 
 
         elif (str(self.field1.get()) == "4011"):
-            self.delall()
+            self.clr()
+            self.controller.show_frame(JobPage)
+            self.controller.frames[JobPage].feild_0_value.focus_set()
+            self.controller.frames[JobPage].clr()
 
 
 
@@ -2194,15 +2226,17 @@ class PageThree(tk.Frame):
         self.feild_1_value = tk.Entry(frame2, width=50, textvariable=self.field1)
         self.feild_1_value.bind("<KeyRelease>", self.on_entry_key1)
         self.feild_1_value.bind("<FocusIn>", self.show_dropdown1)
+        self.feild_1_value.bind("<Return>", lambda e: self.feild_2_value.focus_set())
         self.feild_1_value.bind("<FocusOut>", self.hide_dropdown1)  # Bind focus out event
         self.feild_1_value.grid(row=4, column=1, padx=1, pady=5, columnspan=2, sticky='w')
+        
 
 
         self.listbox1_popup = tk.Toplevel(parent)
         self.listbox1_popup.wm_overrideredirect(True)  # Remove window decorations
         self.listbox1_popup.withdraw()  # Hide initially
 
-        self.listbox1 = tk.Listbox(self.listbox1_popup, height=5, width=30)
+        self.listbox1 = tk.Listbox(self.listbox1_popup, height=5, width=50)
         self.listbox1.pack()
         self.listbox1.bind("<<ListboxSelect>>", self.on_select1)
         self.listbox1.bind("<FocusOut>", self.hide_dropdown1)
@@ -2214,6 +2248,7 @@ class PageThree(tk.Frame):
         self.feild_2_value = tk.Entry(frame2, width=50, textvariable=self.field2)
         self.feild_2_value.bind("<KeyRelease>", self.on_entry_key2)
         self.feild_2_value.bind("<FocusIn>", self.show_dropdown2)
+        self.feild_2_value.bind("<Return>", lambda e: self.feild_3_value.focus_set())
         self.feild_2_value.bind("<FocusOut>", self.hide_dropdown2)  # Bind focus out event
         self.feild_2_value.grid(row=6, column=1, padx=1, pady=5, columnspan=2, sticky='w')
 
@@ -2222,11 +2257,11 @@ class PageThree(tk.Frame):
         self.listbox2_popup.wm_overrideredirect(True)  # Remove window decorations
         self.listbox2_popup.withdraw()  # Hide initially
 
-        self.listbox2 = tk.Listbox(self.listbox2_popup, height=5, width=30)
+        self.listbox2 = tk.Listbox(self.listbox2_popup, height=5, width=50)
         self.listbox2.pack()
         self.listbox2.bind("<<ListboxSelect>>", self.on_select2)
         self.listbox2.bind("<FocusOut>", self.hide_dropdown2)
-        self.options2=self.load_options('JobName.txt')
+        
 
         self.field_3_label = tk.Label(frame2, text="Core wt.:", fg="black", bg='white', font=Label1_font)
         self.field_3_label.grid(row=7, column=0, padx=0, pady=0, sticky='e')
@@ -2243,7 +2278,7 @@ class PageThree(tk.Frame):
         self.feild_4_value = tk.Entry(frame2, fg="black", bg='white', textvariable=self.field4, validate='key',
                                       validatecommand=(self.validation, '%P'), highlightthickness=2,
                                       highlightcolor='yellow', font=field_font, justify='center', exportselection=0)
-        self.feild_4_value.bind("<Return>", lambda e: self.feild_5_value.focus_set())
+        self.feild_4_value.bind("<Return>", lambda e: self.asktosave())
         self.feild_4_value.grid(row=8, column=1, padx=1, pady=5, columnspan=2, sticky='w')
 
         self.field_5_label = tk.Label(frame2, text="Start Roll No..:", fg="black", bg='white', font=Label1_font)
@@ -2272,7 +2307,7 @@ class PageThree(tk.Frame):
     def enf0(self):
         if (self.controller.hero.get() == "<class '__main__.PageThree'>"):
             self.feild_0_value.configure(state="normal")
-            self.feild_5_value.configure(state="normal")
+            #self.feild_5_value.configure(state="normal")
 
 
     def only_int(self,char):
@@ -2299,36 +2334,29 @@ class PageThree(tk.Frame):
         return True
 
     def F1(self):
-        if (self.controller.hero.get() == "<class '__main__.StartPage'>"):
-            self.controller.show_frame(PageThree)
 
-            with open('PartyName.txt') as p:
-                self.options1=self.load_options('PartyName.txt')
-                for option in self.options1:
-                    self.listbox1.insert(tk.END, option)
-                self.field1.set(self.listbox1.get(0))
-            with open('JobName.txt') as v:
-                self.options2=self.load_options('JobName.txt')
-                for option in self.options2:
-                    self.listbox2.insert(tk.END, option)
-                self.field2.set(self.listbox2.get(0))
-            self.clr()
-
-            # self.feild_0_value.focus_set()
 
         try:
             if (self.controller.hero.get() == "<class '__main__.StartPage'>"):
                 self.controller.show_frame(PageThree)
 
                 with open('PartyName.txt') as p:
-                    self.listbox1["values"]=p.readlines()
-                    self.feild_1_value.current(0)
-                with open('JobName.txt') as v:
-                    self.listbox2["values"] = v.readlines()
-                    self.feild_2_value.current(0)
+                    self.options1=self.load_options('PartyName.txt')
+                    for option in self.options1:
+                        self.listbox1.insert(tk.END, option)
+                    self.field1.set(self.listbox1.get(0))
+
+
+                
+                self.options2=db.loadVariety()
+
+                    
+                for option in self.options2:
+                    self.listbox2.insert(tk.END, option[1])
+                self.field2.set(self.listbox2.get(0))
+
                 self.clr()
 
-                self.feild_1_value.focus_set()
 
 
 
@@ -2337,7 +2365,7 @@ class PageThree(tk.Frame):
             pass
 
     def asktosave(self):
-        #        self.save()
+        
         try:
             if (len(self.field1.get()) != 0):
                 MsgBox = tk.messagebox.askquestion('Ask To Save', 'Do you want to save?', icon='question')
@@ -2355,7 +2383,7 @@ class PageThree(tk.Frame):
         today=datetime.datetime.today()
         xdate=today.strftime("%d-%m-%y")
         db.SaveData(str(self.field1.get()), str(self.field2.get()), self.field3.get(), self.field4.get(), xdate)
-        db.srst(self.field5.get())
+        
         db.splno(self.field0.get())
 
         self.controller.frames[StartPage].refresh()
@@ -2363,7 +2391,8 @@ class PageThree(tk.Frame):
 
     def clr(self):
         c=db.loadData()
-        RollNo=db.lrst()
+
+        RollNo=db.lrst(c[1])
         plno=db.lplno()
         self.field0.set(plno)
         self.field1.set(c[0])
@@ -2373,6 +2402,7 @@ class PageThree(tk.Frame):
         self.field5.set(RollNo)
         self.feild_0_value.configure(state="disabled")
         self.errmsg.set("")
+        
 
     def close(self):
         self.clr()
@@ -2400,8 +2430,10 @@ class PageThree(tk.Frame):
         if self.listbox1.curselection():
             self.current_selection1 = self.listbox1.get(self.listbox1.curselection()[0])
             self.field1.set(self.current_selection1)
+            self.listbox1.delete(0, tk.END)
+            self.listbox1.insert(tk.END, self.current_selection1)
             self.hide_dropdown1()
-            self.feild_1_value.focus_set()  # Move focus to entry1 to trigger FocusOut on listbox1
+              # Move focus to entry1 to trigger FocusOut on listbox1
             self.controller.focus_set()
         else:
             self.hide_dropdown1()
@@ -2418,25 +2450,37 @@ class PageThree(tk.Frame):
             self.listbox1_popup.deiconify()  # Show the Toplevel
             
     def hide_dropdown1(self, event=None):
-        self.listbox1_popup.withdraw() 
+        self.listbox1_popup.withdraw()
+        if self.feild_1_value.get().strip() == "" or self.listbox1.get(0)=="":
+            self.field1.set(self.options1[0])
+        else:
+            self.listbox1_popup.withdraw() 
+            self.field1.set(self.listbox1.get(0))
+        
 
     def on_entry_key2(self, event):
         search_term = self.field2.get().lower()
         self.listbox2.delete(0, tk.END)
         for option in self.options2:
-            if search_term in option.lower():
-                self.listbox2.insert(tk.END, option)
+            if search_term in option[1].lower():
+                self.listbox2.insert(tk.END, option[1])
+                
         self.show_dropdown2()
 
     def on_select2(self, event):
         if self.listbox2.curselection():
             self.current_selection2 = self.listbox2.get(self.listbox2.curselection()[0])
             self.field2.set(self.current_selection2)
+            self.listbox2.delete(0, tk.END)
+            self.listbox2.insert(tk.END, self.current_selection2)
+            
             self.hide_dropdown2()
-            self.feild_2_value.focus_set()  # Move focus to entry2 to trigger FocusOut on listbox2
+              # Move focus to entry2 to trigger FocusOut on listbox2
             self.controller.focus_set()
         else:
             self.hide_dropdown2()
+            
+            
         
         
 
@@ -2446,9 +2490,23 @@ class PageThree(tk.Frame):
             y = self.feild_2_value.winfo_rooty() + self.feild_2_value.winfo_height()
             self.listbox2_popup.geometry(f"+{x}+{y}")
             self.listbox2_popup.deiconify()  # Show the Toplevel
+        
             
     def hide_dropdown2(self, event=None):
-        self.listbox2_popup.withdraw() 
+        self.listbox2_popup.withdraw()
+
+        if self.feild_2_value.get().strip() == "" or self.listbox2.get(0)=="":
+            self.field2.set(self.options2[0][1])
+        else:
+            self.listbox2_popup.withdraw() 
+            self.field2.set(self.listbox2.get(0))
+        
+        rollno=db.lrst(self.field2.get())
+        self.field5.set(rollno)
+               
+        
+
+
 
         
 

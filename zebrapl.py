@@ -9,9 +9,9 @@ from datetime import datetime
 def zeepl(wt):
     itrow = db.loadData()
     plno = db.lplno()
-    RollNo = db.lrst()
     Party = itrow[0]
     Variety = itrow[1]
+    RollNo = int(db.lrst(Variety))
     CoreWt = itrow[2]
     TareWt = itrow[3]
     xdate = itrow[4]
@@ -188,6 +188,6 @@ def zeepl(wt):
 
 
 
-    db.srst(int(RollNo + 1))
+    db.srst(Variety,int(RollNo + 1))
 
 

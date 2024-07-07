@@ -9,13 +9,14 @@ def gettkt(wt):
 
     itrow=[]
     itrow=db.loadData()
-    RollNo=db.lrst()
+    
     # print (itrow)
     Party=itrow[0]
     Variety=itrow[1]
     CoreWt=format(float(itrow[2]),".3f")
     TareWt=format(float(itrow[3]),".3f")
     xdate=itrow[4]
+    RollNo=db.lrst(Variety)
 
 
 

@@ -46,11 +46,11 @@ def UpdatefixData(f1,f1fs,x1,y1,f2,f2fs,x2,y2,f3,f3fs,x3,y3,f4,f4fs,x4,y4,f5,f5f
 
 
 
-def SaveData(Party,Variety,CoreWt,TareWt,RollNo):
+def SaveData(Party,Variety,CoreWt,TareWt,Date):
    
     # initializing data to be stored in db 
     
-    master = {'Party':Party.strip('\n'),'Variety':Variety.strip('\n'),'CoreWt':CoreWt,'TareWt':TareWt,'RollNo':RollNo}
+    master = {'Party':Party.strip('\n'),'Variety':Variety.strip('\n'),'CoreWt':CoreWt,'TareWt':TareWt,'Date':Date}
     # Its important to use binary mode 
     static = open('static.dat', 'wb')
     # source, destination 
@@ -67,11 +67,10 @@ def loadData():
     d1 = dat.get("Variety","")
     d2 = dat.get("CoreWt","")
     d3 = dat.get("TareWt","")
-    d4 = dat.get("RollNo", "")
+    d4 = dat.get("Date", "")
     data=[d0,d1,d2,d3,d4]
     static.close()
     return data
-
 
 
 def loadLogo():
@@ -93,18 +92,20 @@ def loadPrint():
     return data
 
 
-
 def SaveBatching(LotNo,RollNo,Party, Variety,GrossWt, TareWt,CoreWt, NetWt,Date,Status):
-    con=lite.connect("batch.db")
+    con=lite.connect("batch_new.db")
     cur=con.cursor()
-    cur.execute("""INSERT INTO bat (LotNo,RollNo,Party,Variety,GrossWt,TareWt,CoreWt,NetWt,Date,Status) VALUES (?,?,?,?,?,?,?,?,?,?)""",(LotNo,RollNo,Party, Variety,GrossWt, TareWt,CoreWt, NetWt,Date,Status))
+    cur.execute("SELECT Variety_id FROM Variety WHERE Variety=:Variety",{"Variety":Variety})
+    result=cur.fetchone()
+    Variety_id=result[0]
+    cur.execute("INSERT INTO bat (LotNo,RollNo,Party,Variety_id,GrossWt,TareWt,CoreWt,NetWt,Date,Status) VALUES (?,?,?,?,?,?,?,?,?,?)",(LotNo,RollNo,Party, Variety_id,GrossWt, TareWt,CoreWt, NetWt,Date,Status))
     con.commit()
     con.close()
 
 
 
 def GetBatchData(LotNo):
-    con=lite.connect("batch.db")
+    con=lite.connect("batch_new.db")
     cur=con.cursor()
     cur.execute("SELECT LotNo,RollNo,Party,Variety,GrossWt,TareWt,CoreWt,NetWt,Date,Status FROM bat WHERE LotNo=:LotNo",{'plno':LotNo})
     rows=cur.fetchall()
@@ -113,9 +114,9 @@ def GetBatchData(LotNo):
 
 
 def GetAll():
-    con=lite.connect("batch.db")
+    con=lite.connect("batch_new.db")
     cur=con.cursor()
-    cur.execute("SELECT * FROM bat")
+    cur.execute("SELECT id,LotNo,RollNo,Party,Variety,GrossWt,TareWt,CoreWt,NetWt,Date,Status FROM bat INNER JOIN Variety ON Variety.Variety_id=bat.Variety_id")
     rows=cur.fetchall()
     con.close()
     return rows
@@ -125,26 +126,27 @@ def GetAll():
 
 
 
-def srst(rst): 
+def srst(Variety,rst): 
     # initializing data to be stored in db 
-    
-    master = {'rst' : rst}  
-    # Its important to use binary mode 
-    static = open('rst.dat', 'wb')
-    # source, destination 
-    pickle.dump(master, static)                      
-    static.close()
+    con=lite.connect("batch_new.db")
+    cur=con.cursor()
+    cur.execute("UPDATE Variety SET Last_RollNo=:rst WHERE Variety=:Variety",{"Variety":Variety,"rst":rst})
+    con.commit()
+    con.close()
+
     
 
 
-def lrst(): 
+def lrst(Variety):
+    con=lite.connect("batch_new.db")
+    cur=con.cursor()
+    cur.execute("SELECT Last_RollNo FROM Variety WHERE Variety=:Variety",{"Variety":Variety})
+    rollNo=cur.fetchone()
+    con.commit()
+    con.close()
+    return rollNo[0]
     # for reading also binary mode is important 
-    static = open('rst.dat', 'rb')
-    db = pickle.load(static) 
-    d = db.get("rst", "")
-    data=int(d)
-    static.close()
-    return data
+    
 
 
 def splno(plno):
@@ -197,7 +199,7 @@ def loadCom():
 
 
 def reset():
-    srst(1)
+    
     splno(1)
     con = lite.connect("batch.db")
     cur = con.cursor()
@@ -205,8 +207,6 @@ def reset():
     nrows = cur.rowcount
     con.commit()
     con.close()
-
-
     return nrows
 
 
@@ -299,7 +299,30 @@ def delid(idlist):
 
 
 
+#--------------------Variety------------------
 
+def saveVariety(Variety,Last_RollNo):
+    con=lite.connect("batch_new.db")
+    cur=con.cursor()
+    cur.execute("INSERT INTO variety (Variety,Last_RollNo) VALUES (?,?)",(Variety,Last_RollNo))
+    con.commit()
+    con.close()
+
+
+def loadVariety():
+    con=lite.connect("batch_new.db")
+    cur=con.cursor()
+    cur.execute("SELECT * FROM variety")
+    rows=cur.fetchall()
+    con.close()
+    return rows
+
+def update_Variety(id,Variety,Last_RollNo):
+    con=lite.connect("batch_new.db")
+    cur=con.cursor()
+    cur.execute("UPDATE variety SET Variety = ?, Last_RollNo = ? WHERE Variety_id = ?",(Variety,Last_RollNo,id))
+    con.commit()
+    con.close()
 
 
 

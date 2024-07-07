@@ -14,19 +14,19 @@
 ^FXNow some text^FS
 ^FO150,200
 ^A0N,35
-^FD Gross Wt.: 25.000^FS
+^FD Gross Wt.: 12.000^FS
 ^FXNow some text^FS
 ^FO150,250
 ^A0N,30
-^FD Core Wt.: 0.56^FS
+^FD Core Wt.: 0.05^FS
 ^FXNow some text^FS
 ^FO150,300
 ^A0N,30
-^FD Tare Wt: 0.2^FS
+^FD Tare Wt: 25^FS
 ^FXNow some text^FS
 ^FO150,350
 ^A0N,30
-^FD Net Wt: 24.240^FS
+^FD Net Wt: -13.050^FS
 ^FXNow some text^FS
 ^FO500,280
 ^A0N,30
@@ -34,15 +34,15 @@
 ^FXNow some text^FS
 ^FO600,30
 ^A0N,25
-^FD 27-06-24^FS
+^FD 08-07-24^FS
 ^FXNow some text^FS
 ^FO260,110
 ^A0N,40
 ^FB450,2,0,L,0
-^FDWRP MGX KRE ROU 8TW 29G+11.8G(4008652)^FS
+^FD4012723 Parle Waffers Cream & Onion Rs 5/ ^FS
 ^FXNow some text^FS
 ^FO510,320
 ^A0N,70
 ^FB140,1,0,C,0
-^FD 1^FS
+^FD 119^FS
 ^XZ
