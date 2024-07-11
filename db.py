@@ -9,7 +9,7 @@ import datetime
 
 def wbbatchData():
 
-    con=lite.connect("batch_new.db")
+    con=lite.connect("wb.db")
     cur=con.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS bat (id INTEGER PRIMARY KEY AUTOINCREMENT,plno TEXT,Party TEXT,Variety TEXT,RollNo TEXT,GrossWt TEXT,CoreWt TEXT,TareWt TEXT,NetWt TEXT)")
     con.commit()
@@ -19,7 +19,7 @@ def wbbatchData():
 def wbfixData():
 
 
-    con=lite.connect("batch_new.db")
+    con=lite.connect("wb.db")
     cur=con.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS fix (id INTEGER PRIMARY KEY BIGSERIAL, f1 VARCHAR[],f1fs INTEGER NOT NULL,x1 INTEGER,y1 INTEGER,f2 TEXT,f2fs INTEGER NOT NULL,x2 INTEGER,y2 INTEGER,f3 TEXT,f3fs INTEGER NOT NULL,x3 INTEGER,y3 INTEGER,f4 TEXT,f4fs INTEGER NOT NULL,x4 INTEGER,y4 INTEGER,f5 TEXT,f5fs INTEGER NOT NULL,x5 INTEGER,y5 INTEGER,f6 TEXT,f6fs INTEGER NOT NULL,x6 INTEGER,y6 INTEGER,f7 TEXT,f7fs INTEGER NOT NULL,x7 INTEGER,y7 INTEGER,f8 TEXT,f8fs INTEGER NOT NULL,x8 INTEGER,y8 INTEGER,f9 TEXT,f9fs INTEGER NOT NULL,x9 INTEGER,y9 INTEGER,f10 TEXT,f10fs INTEGER NOT NULL,x10 INTEGER,y10 INTEGER, b TEXT,bfs INTEGER NOT NULL,bcode TEXT NOT NULL,barx INTEGER,bary INTEGER)")
     con.commit()
