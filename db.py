@@ -5,24 +5,26 @@ import datetime
 
 #backend
 
+
+
 def wbbatchData():
 
-    con=lite.connect("batch.db")
+    con=lite.connect("batch_new.db")
     cur=con.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS bat (id INTEGER PRIMARY KEY AUTOINCREMENT,plno TEXT,Party TEXT,Variety TEXT,RollNo TEXT,GrossWt TEXT,CoreWt TEXT,TareWt TEXT,NetWt TEXT)")
     con.commit()
     con.close()
 
 
-
-
 def wbfixData():
 
-    con=lite.connect("wb.db")
+
+    con=lite.connect("batch_new.db")
     cur=con.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS fix (id INTEGER PRIMARY KEY AUTOINCREMENT, f1 TEXT,f1fs INTEGER NOT NULL,x1 INTEGER,y1 INTEGER,f2 TEXT,f2fs INTEGER NOT NULL,x2 INTEGER,y2 INTEGER,f3 TEXT,f3fs INTEGER NOT NULL,x3 INTEGER,y3 INTEGER,f4 TEXT,f4fs INTEGER NOT NULL,x4 INTEGER,y4 INTEGER,f5 TEXT,f5fs INTEGER NOT NULL,x5 INTEGER,y5 INTEGER,f6 TEXT,f6fs INTEGER NOT NULL,x6 INTEGER,y6 INTEGER,f7 TEXT,f7fs INTEGER NOT NULL,x7 INTEGER,y7 INTEGER,f8 TEXT,f8fs INTEGER NOT NULL,x8 INTEGER,y8 INTEGER,f9 TEXT,f9fs INTEGER NOT NULL,x9 INTEGER,y9 INTEGER,f10 TEXT,f10fs INTEGER NOT NULL,x10 INTEGER,y10 INTEGER, b TEXT,bfs INTEGER NOT NULL,bcode TEXT NOT NULL,barx INTEGER,bary INTEGER)")
+    cur.execute("CREATE TABLE IF NOT EXISTS fix (id INTEGER PRIMARY KEY BIGSERIAL, f1 VARCHAR[],f1fs INTEGER NOT NULL,x1 INTEGER,y1 INTEGER,f2 TEXT,f2fs INTEGER NOT NULL,x2 INTEGER,y2 INTEGER,f3 TEXT,f3fs INTEGER NOT NULL,x3 INTEGER,y3 INTEGER,f4 TEXT,f4fs INTEGER NOT NULL,x4 INTEGER,y4 INTEGER,f5 TEXT,f5fs INTEGER NOT NULL,x5 INTEGER,y5 INTEGER,f6 TEXT,f6fs INTEGER NOT NULL,x6 INTEGER,y6 INTEGER,f7 TEXT,f7fs INTEGER NOT NULL,x7 INTEGER,y7 INTEGER,f8 TEXT,f8fs INTEGER NOT NULL,x8 INTEGER,y8 INTEGER,f9 TEXT,f9fs INTEGER NOT NULL,x9 INTEGER,y9 INTEGER,f10 TEXT,f10fs INTEGER NOT NULL,x10 INTEGER,y10 INTEGER, b TEXT,bfs INTEGER NOT NULL,bcode TEXT NOT NULL,barx INTEGER,bary INTEGER)")
     con.commit()
     con.close()
+
     
 def getfix(row):
 
@@ -103,7 +105,6 @@ def SaveBatching(LotNo,RollNo,Party, Variety,GrossWt, TareWt,CoreWt, NetWt,Date,
     con.close()
 
 
-
 def GetBatchData(LotNo):
     con=lite.connect("batch_new.db")
     cur=con.cursor()
@@ -122,7 +123,23 @@ def GetAll():
     return rows
 
 
+# def GetFromDate(start,end):
+#     con=lite.connect("batch_new.db")
+#     cur=con.cursor()
+#     cur.execute("SELECT id,LotNo,RollNo,Party,Variety,GrossWt,TareWt,CoreWt,NetWt,Date,Status FROM bat INNER JOIN Variety ON Variety.Variety_id=bat.Variety_id WHERE Date BETWEEN :start AND :end",{'start':start,'end':end})
+#     rows=cur.fetchall()
+#     con.close()
+#     return rows
 
+
+
+def GetAllCount():
+    con=lite.connect("batch_new.db")
+    cur=con.cursor()
+    cur.execute("SELECT COUNT(*) FROM bat")
+    rows=cur.fetchone()
+    con.close()
+    return rows
 
 
 
@@ -201,7 +218,7 @@ def loadCom():
 def reset():
     
     splno(1)
-    con = lite.connect("batch.db")
+    con = lite.connect("batch_new.db")
     cur = con.cursor()
     cur.execute('DELETE FROM bat')
     nrows = cur.rowcount
@@ -288,7 +305,7 @@ def Update_lic():
 
 
 def delid(idlist):
-    con=lite.connect("batch.db")
+    con=lite.connect("batch_new.db")
     cur=con.cursor()
 
     for id in idlist:

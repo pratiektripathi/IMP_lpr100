@@ -22,6 +22,7 @@ import sqlite3 as lite
 import pandas as pd
 
 
+
 xuid=0
 
 try:
@@ -629,7 +630,11 @@ class Report(tk.Toplevel):
 
     def __init__(self, parent, **kwargs):
         tk.Toplevel.__init__(self, parent,**kwargs,bg="#ADD8E0")
+        s=ttk.Style(self)
+        s.theme_use('clam')
+       
 
+  
 
         self.geometry(str(self.winfo_screenwidth())+"x"+str(self.winfo_screenheight()))
         self.state('zoomed')
@@ -724,12 +729,15 @@ class Report(tk.Toplevel):
         self.combobox = ttk.Combobox(frame_but, textvariable=self.combobox_var,font=field_font,width=8, values=["Done", "All","Pending"], state="readonly")
         self.combobox.grid(row=2, column=9,sticky="w", padx=10, pady=10)
 
-
-
+     
         sql_data=db.GetAll()
         
         self.df = pd.DataFrame(sql_data)
         self.df.insert(0,"Mark","") 
+
+        self.filtered_data = self.df.copy()
+
+
         
     
 
@@ -740,6 +748,8 @@ class Report(tk.Toplevel):
         self.treeview = ttk.Treeview(frame_top, columns=("Mark","ID","Lot No","Roll No",
              "PartyName", "Job Name","GrossWeight", "TareWeight","CoreWeight" ,"NetWeight","Date","Status"
         ),height=22,selectmode="extended")
+
+
         self.treeview.column("#0", minwidth=0, width=0, stretch=False, anchor="center")
         self.treeview.column("Mark", minwidth=int(treeview_width * 0.05), width=int(treeview_width * 0.05), stretch=False, anchor="center")
         self.treeview.column("ID", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
@@ -772,24 +782,38 @@ class Report(tk.Toplevel):
         self.treeview.bind("<KeyPress-0>", self.toggle_value)
         self.treeview.bind("<Double-1>", self.toggle_value)
 
+        self.visible_rows = 22
+        self.total_rows = db.GetAllCount()[0]
+        
+   
+        self.loaded_start = 0
+        self.loaded_end = self.visible_rows
+        
+      
 
         # Set the focus on the first cell of the second column
         self.treeview.focus_set()
 
 
-        vsb = ttk.Scrollbar(frame_top, orient="vertical", command=self.treeview.yview)
-        self.treeview.configure(yscrollcommand=vsb.set)
-        vsb.pack(side="right", fill="y")
-
+        # self.vsb = ttk.Scrollbar(frame_top, orient="vertical", command=self.treeview.yview)
+        self.treeview.bind("<MouseWheel>", self.on_scrollTable)
+        # self.vsb.pack(side="right", fill="y")
+        # self.vsb.set(0,25/self.total_rows)
+        
+        
+        self.scale=tk.Scale(frame_top,from_=0,to=self.total_rows-22,orient="vertical",showvalue=False,command=self.on_scroll)
+        self.scale.pack(side="right",fill="y")
         # Create the horizontal scrollbar
         scrollbar_x = ttk.Scrollbar(frame_top, orient="horizontal", command=self.treeview.xview)
         scrollbar_x.pack(side="bottom",fill="x")
         self.treeview.configure(xscrollcommand=scrollbar_x.set)
 
 
+
         self.treeview.pack(side="left", fill="both", expand=True, padx=5, pady=1)
 
 
+  
 
         label_frame=tk.LabelFrame(botom_frame,bg="#ADD8E0")
         label_frame.pack(side="left")
@@ -823,7 +847,7 @@ class Report(tk.Toplevel):
         self.party_name_var.trace('w', lambda *args: self.auto_capitalize(self.party_name_var))
         self.material_var.trace('w', lambda *args: self.auto_capitalize(self.material_var))
 
-
+    
         # -------------------------button---------------------------
 
         button_frame=tk.Frame(botom_frame,bg="#ADD8E0")
@@ -888,11 +912,18 @@ class Report(tk.Toplevel):
         self.bind("<Alt_L>"+"<e>",lambda e:self.toggle_buttons_visibility())
 
 
+        
 
+        
+        
 
         self.clr()
+        
         self.refresh_data(self.df)
-
+        
+      
+        self.loading_data = False
+       
 
         self.start_ticket_var.trace_add("write", lambda *args: self.view_report())
         self.end_ticket_var.trace_add("write", lambda *args: self.view_report())
@@ -901,6 +932,16 @@ class Report(tk.Toplevel):
         self.party_name_var.trace_add("write", lambda *args: self.view_report())
         self.material_var.trace_add("write", lambda *args: self.view_report())
         self.combobox_var.trace_add("write", lambda *args: self.view_report())
+        
+
+
+
+
+
+
+
+        
+
 
     def toggle_buttons_visibility(self):
         if self.button3.winfo_viewable():    
@@ -936,7 +977,6 @@ class Report(tk.Toplevel):
             return True
         return False
 
-
     def auto_capitalize(self, variable):
         value = variable.get()
         variable.set(value.upper())
@@ -955,10 +995,12 @@ class Report(tk.Toplevel):
             if event.char == "1" and f_value == "":
                 value = "✔"
                 self.df.at[index, 'Mark'] = "✔"  # Update DataFrame
+                self.filtered_data.at[index, 'Mark'] = "✔"  # Update DataFrame
                 self.cc += 1
             elif event.char == "0" and f_value == "✔":
                 value = ""
                 self.df.at[index, 'Mark'] = ""  # Update DataFrame
+                self.filtered_data.at[index, 'Mark'] = ""  # Update DataFrame
                 self.cc -= 1
             else:
                 continue
@@ -983,18 +1025,39 @@ class Report(tk.Toplevel):
         self.label5.set(f"Selected Net Weight  \n{round(sum_netweight, 3)} KG")
 
 
-    def refresh_data(self, data):
+
+    def refresh_data(self,data):
+        self.total_rows=len(data)
+        self.scale.configure(to=self.total_rows-22)
         self.treeview.delete(*self.treeview.get_children())
-
-        for index, row in data.iterrows():
-            values = [str(value) for value in row]
-            self.treeview.insert("", index, text=index, values=values)
-            
-
+        self.treeview.tag_configure('Pending', background='#FFAAAA')
+        self.treeview.tag_configure('Done', background='white')
+        data = data.iloc[self.loaded_start:self.loaded_end]
         
 
+     
+        for index, row in data.iterrows():
+            values = [str(value) for value in row]
 
+            self.treeview.insert("", index, text=index, values=values, tags=(row[10]))
 
+    def on_scroll(self, *args):
+        new=self.scale.get()
+        
+     
+        new_end = min(self.total_rows, new+22)
+        self.loaded_start = new
+        self.loaded_end = new_end
+        self.refresh_data(self.filtered_data)
+            
+
+    def on_scrollTable(self, *args):
+        if (args[0].delta)>0:
+            self.scale.set(self.scale.get()-5)
+            self.on_scroll()
+        else :
+            self.scale.set(self.scale.get()+5)
+            self.on_scroll()
 
 
     def close(self):
@@ -1006,13 +1069,17 @@ class Report(tk.Toplevel):
         # Clear all entry box values
         self.start_ticket_var.set('')
         self.end_ticket_var.set('')
-
+        
         self.start_date_entry.set_date('01-03-2024')
 
         # Set the end date to the current date
         current_date = datetime.datetime.now()
         current_date_str = current_date.strftime("%d-%m-%Y")
         self.end_date_entry.set_date(current_date_str)
+
+
+
+    
 
 
         self.party_name_var.set('')
@@ -1023,7 +1090,7 @@ class Report(tk.Toplevel):
         self.combobox_var.set('All')
 
         # Call the view_report function to update the treeview based on the cleared values
-        self.view_report()
+        self.treeview.delete(*self.treeview.get_children())
 
 
     def view_report(self):
@@ -1044,12 +1111,11 @@ class Report(tk.Toplevel):
         end_date_str = datetime.datetime.strptime(end_date_str, "%d-%m-%Y").date() if end_date_str else None
 
 
-
+        self.filtered_data = self.df.copy()
 
         if start_date <= current_date:
             # Start date is before the current date, proceed with filtering
-            filtered_data = self.df.copy()
-
+            
 
             def populate_column(row):
                 if row[10]:
@@ -1060,7 +1126,7 @@ class Report(tk.Toplevel):
                     return row[10]
 
             # Apply the custom function to create the fourth column
-            filtered_data[10] = filtered_data.apply(populate_column, axis=1)
+            self.filtered_data[10] = self.filtered_data.apply(populate_column, axis=1)
             
 
 
@@ -1068,38 +1134,38 @@ class Report(tk.Toplevel):
 
 
             if ticket_type == "Done":
-                filtered_data = filtered_data[filtered_data[10] == "Done"]
+                self.filtered_data = self.filtered_data[self.filtered_data[10] == "Done"]
             elif ticket_type == "Pending":
-                filtered_data = filtered_data[filtered_data[10] != "Done"]
+                self.filtered_data = self.filtered_data[self.filtered_data[10] != "Done"]
 
             if start_ticket:
-                filtered_data = filtered_data[filtered_data[2].astype("Int64") >= int(start_ticket)]
+                self.filtered_data = self.filtered_data[self.filtered_data[2].astype("Int64") >= int(start_ticket)]
 
             if end_ticket:
-                filtered_data = filtered_data[filtered_data[2].astype("Int64") <= int(end_ticket)]
+                self.filtered_data = self.filtered_data[self.filtered_data[2].astype("Int64") <= int(end_ticket)]
 
 
-            filtered_data[9] = pd.to_datetime(filtered_data[9], errors="coerce",dayfirst=True).dt.date
+            self.filtered_data[9] = pd.to_datetime(self.filtered_data[9], errors="coerce",dayfirst=True).dt.date
 
 
 
 
             if start_date_str:
-                filtered_data = filtered_data[(filtered_data[9] >= start_date_str)]
+                self.filtered_data = self.filtered_data[(self.filtered_data[9] >= start_date_str)]
 
 
             if end_date_str:
-                filtered_data = filtered_data[(filtered_data[9] <= end_date_str)]
+                self.filtered_data = self.filtered_data[(self.filtered_data[9] <= end_date_str)]
 
 
             if party_name:
-                filtered_data = filtered_data[filtered_data[3].str.contains(party_name, case=False, na=False)]
+                self.filtered_data = self.filtered_data[self.filtered_data[3].str.contains(party_name, case=False, na=False)]
 
             if material:
-                filtered_data = filtered_data[filtered_data[4].str.contains(material, case=False, na=False)]
+                self.filtered_data = self.filtered_data[self.filtered_data[4].str.contains(material, case=False, na=False)]
 
 
-            self.refresh_data(filtered_data)
+            self.refresh_data(self.filtered_data)
         else:
             self.clr()
             tk.messagebox.showerror("ERROR","Start Date Must Be Less Than End Date")
@@ -1109,8 +1175,11 @@ class Report(tk.Toplevel):
         for item in self.treeview.get_children():
             index = int(self.treeview.item(item, 'text'))
             self.treeview.item(item, values=["✔" if i == 0 else val for i, val in enumerate(self.treeview.item(item)["values"])])
-            self.df.at[index, 'Mark'] = "✔"
-        self.cc = len(self.treeview.get_children())
+            # self.df.at[index, 'Mark'] = "✔"
+        self.filtered_data['Mark'] = "✔"
+        self.df.loc[self.df[2].isin(self.filtered_data[2]), 'Mark'] = "✔"
+
+        self.cc =  self.df['Mark'].value_counts().get('✔', 0)
         self.count.set(str(self.cc) + " data marked")
         self.calculate_weights()
         
@@ -1119,7 +1188,9 @@ class Report(tk.Toplevel):
         for item in self.treeview.get_children():
             index = int(self.treeview.item(item, 'text'))
             self.treeview.item(item, values=["" if i == 0 else val for i, val in enumerate(self.treeview.item(item)["values"])])
-            self.df.at[index, 'Mark'] = ""
+        
+        self.df['Mark'] = ""
+        self.filtered_data['Mark'] = ""
         self.cc = 0
         self.count.set(str(self.cc) + " data marked")
         self.calculate_weights()
@@ -1166,257 +1237,6 @@ class Report(tk.Toplevel):
 
 
     
-
-
-
-
-
-
-
-class Window(tk.Toplevel):
-
-    def __init__(self, parent, **kwargs):
-        tk.Toplevel.__init__(self, parent, **kwargs)
-
-        self.geometry(str(self.winfo_screenwidth()) + "x" + str(self.winfo_screenheight()))
-        self.state('zoomed')
-        self.iconbitmap('myicon.ico')
-        self.focus_set()
-        self.allrows = db.GetAll()
-        self.title("Packing List Database")
-        self.frame_but = tk.Frame(self, bg='white')
-        self.frame_top = tk.Frame(self, bg='white')
-        self.count = tk.StringVar()
-        self.cc = 0
-        count_font = Font(family="Arquitecta", size=8)
-        self.count.set(str(self.cc) + " data marked")
-
-        data = self.allrows
-        self.rows = len(data)
-        self.columns = len(data[0])
-        data = [[0] + list(row) for row in data]
-
-        self.errlb = tk.Label(self.frame_but, textvariable=self.count, fg="black", bg='white', width=30, font=count_font)
-        self.errlb.grid(row=0, column=0)
-
-        self.savebut = tk.Button(self.frame_but, text='Packing list', width=20, bg='lightgrey', activebackground='lightgrey',
-                                 activeforeground='black', command=lambda: self.printing())
-        self.savebut.grid(row=0, column=1)
-
-        self.markall = tk.Button(self.frame_but, text='mark all', width=20, bg='lightgrey', activebackground='lightgrey',
-                                 activeforeground='black', command=lambda: self.mall())
-        self.markall.grid(row=0, column=2)
-
-        self.umarkall = tk.Button(self.frame_but, text='unmark all', width=20, bg='lightgrey', activebackground='lightgrey',
-                                  activeforeground='black', command=lambda: self.umall())
-        self.umarkall.grid(row=0, column=3)
-
-        self.delbut = tk.Button(self.frame_but, text='delete marked', width=20, bg='lightgrey', activebackground='lightgrey',
-                                activeforeground='black', command=lambda: self.delcheck())
-        self.delbut.grid(row=0, column=4)
-
-        self.gen_excel_but = tk.Button(self.frame_but, text='Generate Excel', width=20, bg='lightgrey', activebackground='lightgrey',
-                                       activeforeground='black', command=lambda: self.generate_excel())
-        self.gen_excel_but.grid(row=0, column=5)
-
-        # Dropdown widget for filtering
-        self.status_filter = tk.StringVar()
-        self.status_filter.set("All")
-        self.filter_options = ["Pending", "Done", "All"]
-        self.filter_dropdown = tk.OptionMenu(self.frame_but, self.status_filter, *self.filter_options, command=self.filter_data)
-        self.filter_dropdown.grid(row=0, column=6)
-
-        self.frame_but.pack()
-
-        self.tree = ttk.Treeview(self.frame_top, columns=list(range(self.columns + 1)), show="headings")
-
-        # Set up the table headings
-        self.tree.heading(0, text="")
-        self.tree.heading(1, text="SNo.")
-        self.tree.heading(2, text="P.L. No.")
-        self.tree.heading(3, text="Party")
-        self.tree.heading(4, text="Job Name")
-        self.tree.heading(5, text="Roll No.")
-        self.tree.heading(6, text="Gross Wt.")
-        self.tree.heading(7, text="Tare Wt.")
-        self.tree.heading(8, text="Core Wt.")
-        self.tree.heading(9, text="Net Wt.")
-        self.tree.heading(10, text="Status")  # New status column
-
-        self.tree.column(0, width=10, stretch=True)
-        self.tree.column(1, width=20, stretch=True)
-        self.tree.column(2, width=20, stretch=True)
-        self.tree.column(3, width=300, stretch=True)
-        self.tree.column(4, width=300, stretch=True)
-        self.tree.column(5, width=30, stretch=True)
-        self.tree.column(6, width=30, stretch=True)
-        self.tree.column(7, width=30, stretch=True)
-        self.tree.column(8, width=30, stretch=True)
-        self.tree.column(9, width=30, stretch=True)
-        self.tree.column(10, width=100, stretch=True)  # New status column width
-
-        # Populate the table with the data
-        self.tree_data = [[0] + list(row) for row in self.allrows]
-        for i in range(self.rows):
-            self.tree.insert("", "end", values=self.tree_data[i], tags=("readonly",))
-        self.tree.tag_configure("readonly", background="#f0f0f0")
-
-        # Bind keys '1' and '0' to toggle the value of the first column in the currently focused row
-        self.tree.bind("<KeyPress-1>", self.toggle_value)
-        self.tree.bind("<KeyPress-0>", self.toggle_value)
-
-        # Set the focus on the first cell of the second column
-        self.tree.focus_set()
-        # self.tree.selection_add(self.tree.get_children()[0])
-        # self.tree.focus(self.tree.get_children()[0])
-        # self.tree.selection_remove(self.tree.selection())
-
-        vsb = ttk.Scrollbar(self.frame_top, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=vsb.set)
-        vsb.pack(side="right", fill="y")
-
-        self.tree.pack(side="left", fill="both", expand=True, padx=10, pady=10)
-        self.frame_top.pack(fill="both", expand=True, padx=10, pady=10)
-
-    def mall(self):
-        for item in self.tree.get_children():
-            self.tree.item(item, values=[1 if i == 0 else val for i, val in enumerate(self.tree.item(item)["values"])])
-        self.cc = len(self.tree.get_children())
-        self.count.set(str(self.cc) + " data marked")
-
-    def umall(self):
-        for item in self.tree.get_children():
-            self.tree.item(item, values=[0 if i == 0 else val for i, val in enumerate(self.tree.item(item)["values"])])
-        self.cc = 0
-        self.count.set(str(self.cc) + " data marked")
-
-    def generate_excel(self):
-        con=lite.connect("batch.db")
-        cur=con.cursor()
-        final_table=[]
-        for data in self.get():
-            cur.execute("""UPDATE bat SET Status=:Status WHERE id=:id""",{'id':data[1],'Status':"Done"})
-            final_table.append(data[:-1])
-        con.commit()
-        con.close()
-
-        exel.create_report(final_table)
-        self.print_exel()
-        
-        for row in self.tree.get_children():
-            self.tree.delete(row)
-        self.allrows = db.GetAll()
-        self.tree_data = [[0] + list(row) for row in self.allrows]
-        for i in range(len(self.tree_data)):
-            self.tree.insert("", "end", values=self.tree_data[i], tags=("readonly",))
-
-    def toggle_value(self, event):
-        selected_items = self.tree.selection()
-        for selected_item in selected_items:
-            values = self.tree.item(selected_item, 'values')
-            f_value = values[0]
-            if event.char == "1" and f_value == "0":
-                value = "1"
-                self.cc = self.cc + 1
-            elif event.char == "0" and f_value == "1":
-                value = "0"
-                self.cc = self.cc - 1
-            else:
-                continue
-            self.tree.set(selected_item, 0, value)
-        
-        self.count.set(str(self.cc) + " data marked")
-
-    def get(self):
-        # Return the values in the table as a list of lists
-        values = []
-        for child in self.tree.get_children():
-            row = self.tree.item(child)["values"]
-            if row[0] == 1:
-                values.append(row)
-        return values
-
-    def printing(self):
-        con=lite.connect("batch.db")
-        cur=con.cursor()
-        final_table=[]
-        for data in self.get():
-            cur.execute("""UPDATE bat SET Status=:Status WHERE id=:id""",{'id':data[1],'Status':"Done"})
-            final_table.append(data[:-1])
-        con.commit()
-        con.close()
-
-        report2.create_report(final_table)
-        self.print_pdf()
-        self.allrows = db.GetAll()
-        
-        for row in self.tree.get_children():
-            self.tree.delete(row)
-        self.tree_data = [[0] + list(row) for row in self.allrows]
-        for i in range(len(self.tree_data)):
-            self.tree.insert("", "end", values=self.tree_data[i], tags=("readonly",))
-
-    def delcheck(self):
-        nos = len([x[1] for x in self.get()])
-        try:
-            if nos != 0:
-                MsgBox = tk.messagebox.askquestion('Are You Sure', 'Do you want to delete ' + str(nos) + ' number of data', icon='question')
-                if MsgBox == 'yes':
-                    self.delsel()
-                    MsgBox = tk.messagebox.showinfo("Done", str(nos) + " number of data deleted")
-                else:
-                    pass
-            else:
-                pass
-        except:
-            pass
-
-    def delsel(self):
-        db.delid([x[1] for x in self.get()])
-
-        for row in self.tree.get_children():
-            self.tree.delete(row)
-
-        # Reload all rows
-        self.allrows = db.GetAll()
-        self.tree_data = [[0] + list(row) for row in self.allrows]
-
-        for i in range(len(self.tree_data)):
-            self.tree.insert("", "end", values=self.tree_data[i], tags=("readonly",))
-        self.tree.tag_configure("readonly", background="#f0f0f0")
-        self.cc = 0
-        self.count.set(str(self.cc) + " data marked")
-
-    def print_exel(self):
-        filename = "packing_list.xlsx"
-        # Open the PDF file using the default PDF viewer
-        subprocess.run(["start", filename], shell=True)
-
-    def print_pdf(self):
-        filename = "packing_list.pdf"
-        # Open the PDF file using the default PDF viewer
-        subprocess.run(["start", filename], shell=True)
-
-    def filter_data(self, selection):
-        # Save the current values of the first column (checkbox column)
-        checkbox_values = {self.tree.item(row)["values"][1]: self.tree.item(row)["values"][0] for row in self.tree.get_children()}
-
-        # Clear the treeview
-        for row in self.tree.get_children():
-            self.tree.delete(row)
-
-        # Filter rows based on selection
-        if selection == "All":
-            filtered_data = self.allrows
-        else:
-            filtered_data = [row for row in self.allrows if row[-1] == selection]
-
-        # Add filtered rows and restore checkbox values
-        self.tree_data = [[0] + list(row) for row in filtered_data]
-        for row in self.tree_data:
-            row[0] = checkbox_values.get(row[1], 0)  # Restore checkbox value or default to 0
-            self.tree.insert("", "end", values=row, tags=("readonly",))
-        self.tree.tag_configure("readonly", background="#f0f0f0")
 
 
 

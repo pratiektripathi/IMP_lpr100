@@ -155,10 +155,12 @@ def zeepl(wt):
         zdoc.add_comment("Barcode and text")
         zdoc.add_field_origin(barx, bary)
         code128_data = barcode
-        bc = QR_Barcode(code128_data, 1,bars, 'M')
+        bc = QR_Barcode(code128_data, 2,bars, 'M')
         zdoc.add_barcode(bc)
     else:
         pass
+
+
 
     message = zdoc.zpl_text
     f = open('zebra.zpl', 'w')
