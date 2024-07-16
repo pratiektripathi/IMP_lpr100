@@ -14,7 +14,7 @@
 ^FXNow some text^FS
 ^FO150,200
 ^A0N,35
-^FD Gross Wt.: 1.000^FS
+^FD Gross Wt.: 48.000^FS
 ^FXNow some text^FS
 ^FO150,250
 ^A0N,30
@@ -26,7 +26,7 @@
 ^FXNow some text^FS
 ^FO150,350
 ^A0N,30
-^FD Net Wt: -24.050^FS
+^FD Net Wt: 22.950^FS
 ^FXNow some text^FS
 ^FO500,280
 ^A0N,30
@@ -34,18 +34,18 @@
 ^FXNow some text^FS
 ^FO600,30
 ^A0N,25
-^FD 10-07-24^FS
+^FD 16-07-24^FS
 ^FXNow some text^FS
 ^FO260,110
 ^A0N,40
 ^FB450,2,0,L,0
-^FD3001198 TOO YUM ALL IN ONE ^FS
+^FD4015194 25+10=35GM CASHEW AJMER^FS
 ^FXNow some text^FS
 ^FO510,320
 ^A0N,70
 ^FB140,1,0,C,0
-^FD 32^FS
+^FD 410^FS
 ^FXBarcode and text^FS
 ^FO200,50
-^BQN,1,5,M^FD 32*PRATEEK^FS
+^BQN,2,5,M^FD 410*PRATEEK^FS
 ^XZ

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import datetime
+from dateutil.relativedelta import relativedelta
 import multiprocessing
 import queue as q
 import subprocess
@@ -12,7 +13,7 @@ from tkinter.font import Font
 import serial
 import win32print
 from PIL import Image, ImageTk
-import db
+import db_pg as db
 import exel
 from tkcalendar import DateEntry
 import report2
@@ -729,13 +730,17 @@ class Report(tk.Toplevel):
         self.combobox = ttk.Combobox(frame_but, textvariable=self.combobox_var,font=field_font,width=8, values=["Done", "All","Pending"], state="readonly")
         self.combobox.grid(row=2, column=9,sticky="w", padx=10, pady=10)
 
-     
-        sql_data=db.GetAll()
+
+        
+        today_date=datetime.datetime.today().strftime("%Y-%m-%d")
+        one_month=(datetime.datetime.today() - relativedelta(months=1)).strftime("%Y-%m-%d")
+        sql_data=db.GetFromDate(one_month,today_date)
         
         self.df = pd.DataFrame(sql_data)
         self.df.insert(0,"Mark","") 
 
         self.filtered_data = self.df.copy()
+     
 
 
         
@@ -939,7 +944,6 @@ class Report(tk.Toplevel):
 
 
 
-
         
 
 
@@ -1069,13 +1073,13 @@ class Report(tk.Toplevel):
         # Clear all entry box values
         self.start_ticket_var.set('')
         self.end_ticket_var.set('')
+        today_date=datetime.datetime.today().strftime("%d-%m-%Y")
+        one_month=(datetime.datetime.today() - relativedelta(months=1)).strftime("%d-%m-%Y")
         
-        self.start_date_entry.set_date('01-03-2024')
+        self.start_date_entry.set_date(one_month)
 
-        # Set the end date to the current date
-        current_date = datetime.datetime.now()
-        current_date_str = current_date.strftime("%d-%m-%Y")
-        self.end_date_entry.set_date(current_date_str)
+     
+        self.end_date_entry.set_date(today_date)
 
 
 
@@ -1113,6 +1117,7 @@ class Report(tk.Toplevel):
 
         self.filtered_data = self.df.copy()
 
+
         if start_date <= current_date:
             # Start date is before the current date, proceed with filtering
             
@@ -1145,8 +1150,7 @@ class Report(tk.Toplevel):
                 self.filtered_data = self.filtered_data[self.filtered_data[2].astype("Int64") <= int(end_ticket)]
 
 
-            self.filtered_data[9] = pd.to_datetime(self.filtered_data[9], errors="coerce",dayfirst=True).dt.date
-
+            self.filtered_data[9] = pd.to_datetime(self.filtered_data[9], errors="coerce",yearfirst=True).dt.date
 
 
 
@@ -1177,7 +1181,8 @@ class Report(tk.Toplevel):
             self.treeview.item(item, values=["✔" if i == 0 else val for i, val in enumerate(self.treeview.item(item)["values"])])
             # self.df.at[index, 'Mark'] = "✔"
         self.filtered_data['Mark'] = "✔"
-        self.df.loc[self.df[2].isin(self.filtered_data[2]), 'Mark'] = "✔"
+        self.df.loc[self.df[0].isin(self.filtered_data[0]), 'Mark'] = "✔"
+        
 
         self.cc =  self.df['Mark'].value_counts().get('✔', 0)
         self.count.set(str(self.cc) + " data marked")
@@ -1570,7 +1575,7 @@ class StkSetPage(tk.Frame):
 
     def clear(self):
         fixrow = []
-        fixrow = db.getfix(fixrow)
+        fixrow = db.getfix()
 
         self.field1.set(fixrow[1])
         self.fontsize1cb.current(int(fixrow[2]) - 10)
@@ -1796,6 +1801,7 @@ class JobPage(tk.Frame):
         frame2.pack(fill='both', expand=True)
         self.treeview.bind("<Double-1>", self.onselect)
         self.reload_data()
+        
 
 
     def on_entry_key(self, event):
@@ -1817,7 +1823,6 @@ class JobPage(tk.Frame):
     def refresh_data(self, data):
         self.treeview.delete(*self.treeview.get_children())
         data=data[::-1]
-        
         for row in data:
             self.treeview.insert(parent="", index="end", values=list(row))
             
@@ -1866,7 +1871,7 @@ class JobPage(tk.Frame):
     def clr(self):
         self.field0.set("")
         self.field1.set("0")
-        self.field2.set(self.variety_data[-1][-0]+1)
+        self.field2.set(self.variety_data[-1][0]+1)
  
         self.errmsg.set("")
 

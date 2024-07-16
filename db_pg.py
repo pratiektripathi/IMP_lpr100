@@ -2,12 +2,11 @@ import sqlite3 as lite
 import pickle
 import psutil
 import datetime
-
-#backend
-
-
+import psycopg2 as pg
+import json
 
 
+parms=json.load(open('db_parms.json'))
 
     
 def getfix():
@@ -79,38 +78,50 @@ def loadPrint():
 
 
 def SaveBatching(LotNo,RollNo,Party, Variety,GrossWt, TareWt,CoreWt, NetWt,Date,Status):
-    con=lite.connect("batch_new.db")
+    con=pg.connect(**parms)
     cur=con.cursor()
-    cur.execute("SELECT Variety_id FROM Variety WHERE Variety=:Variety",{"Variety":Variety})
+    cur.execute('''SELECT "Variety_id" FROM "Variety" WHERE "Variety" = %s ;''',(Variety,))
     result=cur.fetchone()
     Variety_id=result[0]
-    cur.execute("INSERT INTO bat (LotNo,RollNo,Party,Variety_id,GrossWt,TareWt,CoreWt,NetWt,Date,Status) VALUES (?,?,?,?,?,?,?,?,?,?)",(LotNo,RollNo,Party, Variety_id,GrossWt, TareWt,CoreWt, NetWt,Date,Status))
+    cur.execute('''INSERT INTO bat ("LotNo","RollNo","Party","Variety_id","GrossWt","TareWt","CoreWt","NetWt","Date","Status") VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) ;''',(LotNo,RollNo,Party, Variety_id,GrossWt, TareWt,CoreWt, NetWt,Date,Status,))
     con.commit()
     con.close()
 
 
+
+
 def GetBatchData(LotNo):
-    con=lite.connect("batch_new.db")
+    con=pg.connect(**parms)
     cur=con.cursor()
-    cur.execute("SELECT LotNo,RollNo,Party,Variety,GrossWt,TareWt,CoreWt,NetWt,Date,Status FROM bat WHERE LotNo=:LotNo",{'plno':LotNo})
+    cur.execute('''SELECT "LotNo","RollNo","Party","Variety","GrossWt","TareWt","CoreWt","NetWt","Date","Status" FROM bat WHERE "LotNo" = %s ;''',(LotNo,))
     rows=cur.fetchall()
     con.close()
     return rows
 
 
 def GetAll():
-    con=lite.connect("batch_new.db")
+    con=pg.connect(**parms)
     cur=con.cursor()
-    cur.execute("SELECT id,LotNo,RollNo,Party,Variety,GrossWt,TareWt,CoreWt,NetWt,Date,Status FROM bat INNER JOIN Variety ON Variety.Variety_id=bat.Variety_id")
+    cur.execute('''SELECT "id","LotNo","RollNo","Party","Variety","GrossWt","TareWt","CoreWt","NetWt","Date","Status"
+                FROM bat 
+                INNER JOIN "Variety" 
+                ON "Variety"."Variety_id" = "bat"."Variety_id" 
+                ORDER BY "id" ASC''')
     rows=cur.fetchall()
     con.close()
     return rows
 
 
+
+
 def GetFromDate(start,end):
-    con=lite.connect("batch_new.db")
+    con=pg.connect(**parms)
     cur=con.cursor()
-    cur.execute("SELECT id,LotNo,RollNo,Party,Variety,GrossWt,TareWt,CoreWt,NetWt,Date,Status FROM bat INNER JOIN Variety ON Variety.Variety_id=bat.Variety_id WHERE Date BETWEEN :start AND :end",{'start':start,'end':end})
+    cur.execute('''SELECT "id","LotNo","RollNo","Party","Variety","GrossWt","TareWt","CoreWt","NetWt","Date","Status"
+                FROM bat INNER JOIN "Variety" 
+                ON "Variety"."Variety_id" = "bat"."Variety_id" 
+                WHERE "Date" BETWEEN %s AND %s
+                ORDER BY "id" ASC''',(start,end))
     rows=cur.fetchall()
     con.close()
     return rows
@@ -118,7 +129,7 @@ def GetFromDate(start,end):
 
 
 def GetAllCount():
-    con=lite.connect("batch_new.db")
+    con=pg.connect(**parms)
     cur=con.cursor()
     cur.execute("SELECT COUNT(*) FROM bat")
     rows=cur.fetchone()
@@ -129,9 +140,9 @@ def GetAllCount():
 
 def srst(Variety,rst): 
     # initializing data to be stored in db 
-    con=lite.connect("batch_new.db")
+    con=pg.connect(**parms)
     cur=con.cursor()
-    cur.execute("UPDATE Variety SET Last_RollNo=:rst WHERE Variety=:Variety",{"Variety":Variety,"rst":rst})
+    cur.execute('''UPDATE "Variety" SET "Last_RollNo" = %s WHERE "Variety" = %s ;''',(rst,Variety,))
     con.commit()
     con.close()
 
@@ -139,15 +150,14 @@ def srst(Variety,rst):
 
 
 def lrst(Variety):
-    con=lite.connect("batch_new.db")
+    con=pg.connect(**parms)
     cur=con.cursor()
-    cur.execute("SELECT Last_RollNo FROM Variety WHERE Variety=:Variety",{"Variety":Variety})
+    cur.execute('''SELECT "Last_RollNo" FROM "Variety" WHERE "Variety" = %s ;''',(Variety,))
     rollNo=cur.fetchone()
     con.commit()
     con.close()
     return rollNo[0]
     # for reading also binary mode is important 
-    
 
 
 def splno(plno):
@@ -202,7 +212,7 @@ def loadCom():
 def reset():
     
     splno(1)
-    con = lite.connect("batch_new.db")
+    con = pg.connect(**parms)
     cur = con.cursor()
     cur.execute('DELETE FROM bat')
     nrows = cur.rowcount
@@ -289,11 +299,11 @@ def Update_lic():
 
 
 def delid(idlist):
-    con=lite.connect("batch_new.db")
+    con=pg.connect(**parms)
     cur=con.cursor()
 
     for id in idlist:
-        cur.execute("DELETE FROM bat WHERE id = ?", (id,))
+        cur.execute("DELETE FROM bat WHERE id = %s", (id,))
 
     con.commit()
     con.close()
@@ -303,25 +313,25 @@ def delid(idlist):
 #--------------------Variety------------------
 
 def saveVariety(Variety,Last_RollNo):
-    con=lite.connect("batch_new.db")
+    con=pg.connect(**parms)
     cur=con.cursor()
-    cur.execute("INSERT INTO variety (Variety,Last_RollNo) VALUES (?,?)",(Variety,Last_RollNo))
+    cur.execute('''INSERT INTO "Variety" ("Variety","Last_RollNo") VALUES (%s,%s) ;''',(Variety,Last_RollNo,))
     con.commit()
     con.close()
 
 
 def loadVariety():
-    con=lite.connect("batch_new.db")
+    con=pg.connect(**parms)
     cur=con.cursor()
-    cur.execute("SELECT * FROM variety")
+    cur.execute('''SELECT * FROM "Variety" ORDER BY "Variety_id" ASC;''')
     rows=cur.fetchall()
     con.close()
     return rows
 
 def update_Variety(id,Variety,Last_RollNo):
-    con=lite.connect("batch_new.db")
+    con=pg.connect(**parms)
     cur=con.cursor()
-    cur.execute("UPDATE variety SET Variety = ?, Last_RollNo = ? WHERE Variety_id = ?",(Variety,Last_RollNo,id))
+    cur.execute('''UPDATE "Variety" SET "Variety" = %s, "Last_RollNo" = %s WHERE "Variety_id" = %s ;''',(Variety,Last_RollNo,id,))
     con.commit()
     con.close()
 

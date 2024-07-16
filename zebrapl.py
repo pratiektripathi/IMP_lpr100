@@ -1,5 +1,5 @@
 from simple_zpl2 import ZPLDocument, Code128_Barcode, QR_Barcode
-import db
+import db_pg as db
 import sys
 import win32print
 from datetime import datetime
@@ -16,7 +16,7 @@ def zeepl(wt):
     TareWt = itrow[3]
     xdate = itrow[4]
     current_date = datetime.now()
-    current_date_str = current_date.strftime("%d-%m-%Y")
+    current_date_str = current_date.strftime("%Y-%m-%d")
 
     weight = str(format(round(float(wt), 2), ".3f"))
     SubWt = float(CoreWt) + float(TareWt)
@@ -29,7 +29,7 @@ def zeepl(wt):
     stats = {'$Party': Party, '$Variety': Variety, '$CoreWt': CoreWt, '$TareWt': TareWt, '$GWt': weight,
              '$NetWt': NetWt, '$RollNo': RollNo, '$xdate': xdate, '$plno':plno}
     fixrow = []
-    fixrow = db.getfix(fixrow)
+    fixrow = db.getfix()
 
     logodata=db.loadLogo()
     logo=logodata[0].strip("\n")
@@ -171,7 +171,7 @@ def zeepl(wt):
         raw_data = bytes(message, "utf-8")
     else:
         raw_data = message
-
+   
     if len(PrinterName) != 0:
         hprinter = win32print.OpenPrinter(PrinterName)
         try:
@@ -181,6 +181,7 @@ def zeepl(wt):
                 for i in range(0, Copy):
                     win32print.WritePrinter(hprinter, raw_data)
                 db.SaveBatching(plno,RollNo, Party, Variety,  weight,  TareWt,CoreWt, NetWt,current_date_str,"Pending")
+                
 # LotNo,RollNo,Party, Variety,GrossWt, TareWt,CoreWt, NetWt,Date,Status
                 win32print.EndPagePrinter(hprinter)
             finally:

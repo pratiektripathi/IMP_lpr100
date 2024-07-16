@@ -1,4 +1,4 @@
-import db
+import db_pg as db
 import pickle
 
 
