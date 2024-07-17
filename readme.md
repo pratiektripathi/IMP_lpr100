@@ -23,3 +23,9 @@ The Label Printing Scale Software is a comprehensive solution for integrating we
     - simple-zpl2
     - PostgreSQL
 
+![report](screenshots\Screenshot 2024-07-17 120720.jpg)
+![sticker_design_settings](screenshots\Screenshot 2024-07-17 122453.jpg)
+![sticker_data_settings](screenshots\Screenshot 2024-07-17 122532.jpg)
+![weight_settings](screenshots\Screenshot 2024-07-17 122453.jpg)
+
+
