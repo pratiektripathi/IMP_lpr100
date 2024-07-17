@@ -1202,18 +1202,14 @@ class Report(tk.Toplevel):
 
 
     def printing(self,format):
-        con=lite.connect("batch_new.db")
-        cur=con.cursor()
+
         
         selected_rows = self.df[self.df["Mark"] == "✔"]
         ids=selected_rows[0].tolist()
+        db.update_status(ids)
         
         
-        for id in ids:        
-            cur.execute("""UPDATE bat SET Status=:Status WHERE id=:id""",{'id':id,'Status':"Done"})
-            
-        con.commit()
-        con.close()
+
 
         toprint=selected_rows.copy()
         

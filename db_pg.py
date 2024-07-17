@@ -336,4 +336,14 @@ def update_Variety(id,Variety,Last_RollNo):
     con.close()
 
 
+# ==================update report==================================
 
+
+def update_status(ids):
+    con=pg.connect(**parms)
+    cur=con.cursor()
+    for id in ids:       
+        cur.execute("""UPDATE bat SET "Status" = %s WHERE "id" = %s""",("Done",id,))   
+
+    con.commit()
+    con.close()
