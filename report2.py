@@ -12,32 +12,42 @@ def create_report(cdata):
     xdate = today.strftime("%d-%m-%y")
     sno = 1
     party_data = {}
+  
     for row in cdata:
+        
         party = row[4]
         variety = row[5]
         if party not in party_data:
             party_data[party] = {}
+        
         if variety not in party_data[party]:
-            party_data[party][variety] = {'total_gross_wt': 0, 'total_tare_wt': 0, 'total_core_wt': 0, 'total_net_wt': 0, 'data': []}
+            party_data[party][variety] = {'total_gross_wt': 0, 'total_tare_wt': 0, 'total_core_wt': 0, 'total_net_wt': 0,'last_sno':1, 'data': []}
             sno=1
+
+        else:
+            sno=party_data[party][variety]['last_sno']
 
         gross_wt, tare_wt, core_wt, net_wt = float(row[6]), float(row[7]), float(row[8]), float(row[9])
         party_data[party][variety]['total_gross_wt'] += gross_wt
         party_data[party][variety]['total_tare_wt'] += tare_wt
         party_data[party][variety]['total_core_wt'] += core_wt
         party_data[party][variety]['total_net_wt'] += net_wt
+        party_data[party][variety]['last_sno'] += 1
+        
+        
 
         del row[10:]
         del row[1:3]
         del row[2:4]
         
         
-
+        
         row[0] = sno
         sno += 1
         party_data[party][variety]['data'].append(row)
 
-    # Define the style sheet
+    
+
     styles = getSampleStyleSheet()
     style_title = styles["Title"]
     style_table_header = styles["Heading3"]

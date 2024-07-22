@@ -106,11 +106,24 @@ class MainApp(tk.Tk):
 
         self.iconbitmap('myicon.ico')
 
+
+        menubar=tk.Menu(self)
+
+        helpmenu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Help", menu=helpmenu)
+        helpmenu.add_command(label="Settings", command=self.settings)
+        helpmenu.add_separator()
+        helpmenu.add_command(label="check for update", command=self.check_for_update)
+        self.config(menu=menubar)
+
         xcord=(self.winfo_screenwidth()/2)-300
         ycord=(self.winfo_screenheight()/2)-300
+        
+
         self.geometry("600x600"+"+"+str(int(xcord))+"+"+str(int(ycord)))
 
 
+        
 
         frame1 = tk.Frame(self, bg='white')
 
@@ -202,6 +215,11 @@ class MainApp(tk.Tk):
         self.process_serial()
         self.checkbt()
 
+    def check_for_update(self):
+        print("hello")
+    
+    def settings(self):
+        self.frames[PasswordPage].F1()
 
 
     def ext(self):
@@ -1065,7 +1083,7 @@ class Report(tk.Toplevel):
 
 
     def close(self):
-        self.clr()
+        
         self.destroy()
 
 
