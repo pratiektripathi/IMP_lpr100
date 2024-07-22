@@ -2,6 +2,7 @@ import tkinter as tk
 
 
 
+
 class Updater(tk.Tk):
 
     def __init__(self,*args,**kwargs):
@@ -9,7 +10,7 @@ class Updater(tk.Tk):
 
         self.title("Updater")
         xcord=(self.winfo_screenwidth()/2)-150
-        ycord=(self.winfo_screenheight()/2)-150
+        ycord=(self.winfo_screenheight()/2)-75
         
 
         self.geometry("300x150"+"+"+str(int(xcord))+"+"+str(int(ycord)))
@@ -21,7 +22,7 @@ class Updater(tk.Tk):
 
         self.frame1=tk.Frame(self,bg="#ADD8E0")
         self.label1=tk.Label(self.frame1,text="Checking For Update",font=("Arquitecta",12),bg="#ADD8E0")
-        self.label1.grid(row=0,column=0,pady=5,sticky='NEWS')
+        self.label1.grid(row=0,column=0,pady=5)
 
         self.label2=tk.Label(self.frame1,textvariable=self.dot,font=("Arquitecta",16),fg="red",bg="#ADD8E0")
         self.dot.set("")

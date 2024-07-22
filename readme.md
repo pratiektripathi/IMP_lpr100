@@ -19,13 +19,13 @@ The Label Printing Scale Software is a comprehensive solution for integrating we
     - Tkinter
     - ReportLab
     - pandas
-    - pyserial
+    - pyserial "readme
     - simple-zpl2
     - PostgreSQL
 
-![report](screenshots/Screenshot 2024-07-17 120720.jpg)
-![sticker_design_settings](screenshots/Screenshot 2024-07-17 122453.jpg)
-![sticker_data_settings](screenshots/Screenshot 2024-07-17 122532.jpg)
-![weight_settings](screenshots/Screenshot 2024-07-17 122453.jpg)
+![report](screenshots/1.jpg)
+![sticker_design_settings](screenshots/2.jpg)
+![sticker_data_settings](screenshots/3.jpg)
+![weight_settings](screenshots/4.jpg)
 
 
