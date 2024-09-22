@@ -4,11 +4,9 @@ import pickle
 
       
 def gettkt(wt):
-    
-
-
     itrow=[]
     itrow=db.loadData()
+    
     
     # print (itrow)
     Party=itrow[0]
@@ -17,6 +15,7 @@ def gettkt(wt):
     TareWt=format(float(itrow[3]),".3f")
     xdate=itrow[4]
     RollNo=db.lrst(Variety)
+   
 
 
 

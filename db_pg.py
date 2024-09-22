@@ -4,6 +4,7 @@ import psutil
 import datetime
 import psycopg2 as pg
 import json
+import requests
 
 
 parms=json.load(open('db_parms.json'))
@@ -347,3 +348,24 @@ def update_status(ids):
 
     con.commit()
     con.close()
+
+
+    # ==================update check==================================
+
+def update_check():
+    url = "https://raw.githubusercontent.com/pratiektripathi/lpr100exe/main/version.json"
+    old=json.load(open('version.json'))
+    try:
+        response = requests.get(url)
+        # Check if the request was successful
+        if response.status_code == 200:
+            # Parse the JSON content
+            content = response.content.decode('utf-8')
+            version_info = json.loads(content)
+            if old['version']<version_info['version']:
+                return True
+        else:
+            return False
+    
+    except:
+        return False

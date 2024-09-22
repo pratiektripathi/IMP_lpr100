@@ -24,6 +24,7 @@ import pandas as pd
 
 
 
+
 xuid=0
 
 try:
@@ -34,8 +35,6 @@ try:
         xuid = 0
 except:
     xuid = 0
-
-
 
 
 xcom=[]
@@ -108,13 +107,16 @@ class MainApp(tk.Tk):
 
 
         menubar=tk.Menu(self)
-
         helpmenu = tk.Menu(menubar, tearoff=0)
+        itemmenu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Transaction", menu=itemmenu)
+
         menubar.add_cascade(label="Help", menu=helpmenu)
         helpmenu.add_command(label="Settings", command=self.settings)
         helpmenu.add_separator()
         helpmenu.add_command(label="check for update", command=self.check_for_update)
         self.config(menu=menubar)
+
 
         xcord=(self.winfo_screenwidth()/2)-300
         ycord=(self.winfo_screenheight()/2)-300
@@ -204,10 +206,6 @@ class MainApp(tk.Tk):
 
         self.show_frame(StartPage)
 
-
-
-
-
         self.queue = multiprocessing.Queue()
         self.thread = SerialThread(self.queue)
         self.thread.start()
@@ -216,7 +214,8 @@ class MainApp(tk.Tk):
         self.checkbt()
 
     def check_for_update(self):
-        print("hello")
+        window=updater(self)
+        window.grab_set()
     
     def settings(self):
         self.frames[PasswordPage].F1()
@@ -479,6 +478,7 @@ class StartPage(tk.Frame):
         NetWt = str(itrow[5])
         Rollno = str(itrow[6])
         xdate=str(itrow[7])
+       
 
 
 
@@ -507,7 +507,7 @@ class StartPage(tk.Frame):
         self.f6l = tk.Label(framec1, textvariable=self.f6, fg="black",  bg='white',  font=Label1_font)
         self.f6l.grid(row=5, column=0,columnspan = 2,padx=3, pady=1,sticky='n')
         self.f7l = tk.Label(framec1, textvariable=self.f7, fg="black", bg='white',  font=Label1_font)
-        self.f7l.grid(row=5, column=1,columnspan = 2,padx=3, pady=1,sticky='')
+        self.f7l.grid(row=5, column=2,columnspan = 2,padx=3, pady=1,sticky='')
 
 
         framec1.grid(row=3,column=0,   padx = 10, pady = 5)
@@ -641,6 +641,81 @@ class StartPage(tk.Frame):
     def reporter(self):
         window=Report(self)
         window.grab_set()
+
+
+class updater(tk.Toplevel):
+
+    def __init__(self, parent, **kwargs):
+        tk.Toplevel.__init__(self, parent,**kwargs,bg="#ADD8E0")
+        s=ttk.Style(self)
+        s.theme_use('clam')
+
+        self.title("Updater")
+        xcord=(self.winfo_screenwidth()/2)-150
+        ycord=(self.winfo_screenheight()/2)-75
+
+        self.ucd=0
+        
+
+        self.geometry("300x150"+"+"+str(int(xcord))+"+"+str(int(ycord)))
+
+        self.dot=tk.StringVar()
+
+        self.iconbitmap('myicon.ico')
+        self.resizable(False,False)
+
+        self.frame1=tk.Frame(self,bg="#ADD8E0")
+        self.label1=tk.Label(self.frame1,text="Checking For Update",font=("Arquitecta",12),bg="#ADD8E0")
+        self.label1.grid(row=0,column=0,pady=5)
+
+        self.label2=tk.Label(self.frame1,textvariable=self.dot,font=("Arquitecta",16),fg="red",bg="#ADD8E0")
+        self.dot.set("")
+        self.label2.grid(row=1,column=0,pady=5)
+
+
+        self.button1=tk.Button(self.frame1,text="Download & Update",font=("Arquitecta",12),bg="#ADD8E0",command=self.download)
+        self.button1.grid(row=2,column=0,pady=5)
+        self.button1.grid_remove()
+        self.frame1.pack(fill="both",expand=True)
+
+        self.check()
+
+    def check(self):
+        self.ucd+=1
+        cup=False
+        if self.ucd>5:
+            cup=db.update_check()
+            
+        if self.ucd<20 and cup==False:
+            if len(self.dot.get())<5:
+                self.dot.set(self.dot.get()+"*")
+                
+            else:
+                self.dot.set("")
+
+
+
+            self.after(500,self.check)
+
+        elif self.ucd<20 and cup==True:
+            self.dot.set("update available")
+            self.button1.grid()
+
+        else:
+            self.dot.set("update not available")
+            
+
+
+
+
+    def download(self):
+        print("downloading")
+        
+
+
+
+
+
 
 
 
@@ -891,6 +966,10 @@ class Report(tk.Toplevel):
         image5 = Image.open("res/printxl.jpg")
         button_image5 = ImageTk.PhotoImage(image5)
 
+
+
+        
+
         
 
 
@@ -920,8 +999,13 @@ class Report(tk.Toplevel):
         self.button5.bind("<Return>", lambda e: self.printing("xl"))
         self.button5.grid(row=0,column=6,rowspan=3, padx=10, pady=10)
 
+
+        self.button6 = tk.Radiobutton(button_frame,text= "Change Status",)
+        self.button6.grid(row=0,column=7,rowspan=3,padx=10,pady=10)
+
         self.button3.grid_remove()  # Hide the button initially
         self.button5.grid_remove()  # Hide the button initially
+        self.button6.grid_remove()
         
 
 
@@ -975,6 +1059,11 @@ class Report(tk.Toplevel):
             self.button5.grid_remove()
         else:     
             self.button5.grid()
+        
+        if self.button6.winfo_viewable():    
+            self.button6.grid_remove()
+        else:     
+            self.button6.grid()
 
   
 
@@ -1884,7 +1973,7 @@ class JobPage(tk.Frame):
 
     def clr(self):
         self.field0.set("")
-        self.field1.set("0")
+        self.field1.set("1")
         self.field2.set(self.variety_data[-1][0]+1)
  
         self.errmsg.set("")
@@ -2210,6 +2299,7 @@ class PageThree(tk.Frame):
                 MsgBox = tk.messagebox.askquestion('Ask To Save', 'Do you want to save?', icon='question')
                 if MsgBox == 'yes':
                     self.save()
+                    
                 else:
                     pass
             else:

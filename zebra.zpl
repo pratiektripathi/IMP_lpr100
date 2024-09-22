@@ -14,7 +14,7 @@
 ^FXNow some text^FS
 ^FO150,200
 ^A0N,35
-^FD Gross Wt.: 52.000^FS
+^FD Gross Wt.: 20.000^FS
 ^FXNow some text^FS
 ^FO150,250
 ^A0N,30
@@ -26,7 +26,7 @@
 ^FXNow some text^FS
 ^FO150,350
 ^A0N,30
-^FD Net Wt: 26.950^FS
+^FD Net Wt: -5.050^FS
 ^FXNow some text^FS
 ^FO500,280
 ^A0N,30
@@ -34,18 +34,18 @@
 ^FXNow some text^FS
 ^FO600,30
 ^A0N,25
-^FD 16-07-24^FS
+^FD 28-07-24^FS
 ^FXNow some text^FS
 ^FO260,110
 ^A0N,40
 ^FB450,2,0,L,0
-^FD3001199 TOO YUMM ALOO BHUJIA 55/^FS
+^FDnewbrd^FS
 ^FXNow some text^FS
 ^FO510,320
 ^A0N,70
 ^FB140,1,0,C,0
-^FD 81^FS
+^FD 2^FS
 ^FXBarcode and text^FS
 ^FO200,50
-^BQN,2,5,M^FD 81*PRATEEK^FS
+^BQN,2,5,M^FD 2*PRATEEK^FS
 ^XZ
