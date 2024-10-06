@@ -14,7 +14,7 @@
 ^FXNow some text^FS
 ^FO150,200
 ^A0N,35
-^FD Gross Wt.: 20.000^FS
+^FD Gross Wt.: 27.000^FS
 ^FXNow some text^FS
 ^FO150,250
 ^A0N,30
@@ -26,7 +26,7 @@
 ^FXNow some text^FS
 ^FO150,350
 ^A0N,30
-^FD Net Wt: -5.050^FS
+^FD Net Wt: 1.950^FS
 ^FXNow some text^FS
 ^FO500,280
 ^A0N,30
@@ -34,18 +34,18 @@
 ^FXNow some text^FS
 ^FO600,30
 ^A0N,25
-^FD 28-07-24^FS
+^FD 03-10-24^FS
 ^FXNow some text^FS
 ^FO260,110
 ^A0N,40
 ^FB450,2,0,L,0
-^FDnewbrd^FS
+^FD2006619 66.8GM MILK BIKIS^FS
 ^FXNow some text^FS
 ^FO510,320
 ^A0N,70
 ^FB140,1,0,C,0
-^FD 2^FS
+^FD 618^FS
 ^FXBarcode and text^FS
 ^FO200,50
-^BQN,2,5,M^FD 2*PRATEEK^FS
+^BQN,2,5,M^FD10000004M2^FS
 ^XZ

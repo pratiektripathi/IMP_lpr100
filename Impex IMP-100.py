@@ -28,7 +28,8 @@ import pandas as pd
 xuid=0
 
 try:
-    chuid=int(db.Lcheck())
+
+    chuid=int(db.Lcheck()[0])
     if chuid==1:
         xuid = 1
     else:
@@ -107,14 +108,28 @@ class MainApp(tk.Tk):
 
 
         menubar=tk.Menu(self)
+        mastermenu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Master", menu=mastermenu)
+        mastermenu.add_command(label="Add Party", command=self.add_party)
+        mastermenu.add_command(label="Add from PartyName.txt", command=self.add_party_from_file)
+        
+        mastermenu.add_separator()
+
+        mastermenu.add_command(label="Add Variety", command=self.add_variety)
+
+
+
+        
         helpmenu = tk.Menu(menubar, tearoff=0)
         itemmenu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Transaction", menu=itemmenu)
+        itemmenu.add_command(label="Barcode", command=self.transaction)
+        
 
         menubar.add_cascade(label="Help", menu=helpmenu)
         helpmenu.add_command(label="Settings", command=self.settings)
-        helpmenu.add_separator()
-        helpmenu.add_command(label="check for update", command=self.check_for_update)
+        # helpmenu.add_separator()
+        # helpmenu.add_command(label="check for update", command=self.check_for_update)
         self.config(menu=menubar)
 
 
@@ -197,7 +212,7 @@ class MainApp(tk.Tk):
 
         self.frames = {}
 
-        for F in (StartPage, ComPage, StkSetPage, PasswordPage, PageThree,JobPage):
+        for F in (StartPage, ComPage, StkSetPage, PasswordPage, PageThree,JobPage,PartyPage,DispatchPage):
             frame = F(container, self)
 
             self.frames[F] = frame
@@ -213,6 +228,16 @@ class MainApp(tk.Tk):
         self.process_serial()
         self.checkbt()
 
+    def add_party(self):
+        self.frames[PartyPage].clr()
+        self.frames[PartyPage].feild_0_value.focus_set()
+        self.show_frame(PartyPage)
+
+    def add_variety(self):
+        self.frames[JobPage].clr()
+        self.frames[JobPage].feild_0_value.focus_set()
+        self.show_frame(JobPage)
+
     def check_for_update(self):
         window=updater(self)
         window.grab_set()
@@ -220,17 +245,34 @@ class MainApp(tk.Tk):
     def settings(self):
         self.frames[PasswordPage].F1()
 
+    def transaction(self):
+        self.frames[DispatchPage].clr()
+        self.frames[DispatchPage].feild_0_value.focus_set()
+        self.show_frame(DispatchPage)
+        # window=BarcodePage(self)
+        # window.grab_set()
 
     def ext(self):
         self.frames[StkSetPage].close()
         self.frames[PasswordPage].close()
         self.frames[PageThree].close()
 
-        #         self.frames[PageFive].close()
-        #         self.frames[PageSix].close()
     def Auto(self):
         self.am=1
         self.frames[StartPage].gremove()
+
+
+    def add_party_from_file(self):
+        partyNames= [x[1] for x in db.loadParty()]
+  
+        with open('PartyName.txt', 'r') as f:
+            for line in f:
+                if line not in partyNames:
+                    db.saveParty(line.strip('\n'))
+                    
+        
+        tk.messagebox.showinfo("Success", "Party Added")
+
 
 
 
@@ -642,6 +684,605 @@ class StartPage(tk.Frame):
         window=Report(self)
         window.grab_set()
 
+class PartyPage(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        frame2 = tk.Frame(self, bg='white')
+        self.field0 = tk.StringVar()
+        self.field1 = tk.StringVar()
+        self.field2 = tk.StringVar()       
+        self.controller = controller
+        self.errmsg = tk.StringVar()
+
+        
+        err_font = Font(family="Arquitecta", size=10)
+        Label1_font = Font(family="Arquitecta", size=14)
+        field_font = Font(family="Arquitecta", size=12)
+
+        self.errorlabel = tk.Label(frame2, width=25, height=1, textvariable=self.errmsg, fg="red", bg='white',
+                                   font=err_font)
+        self.errorlabel.grid(row=11, column=0, padx=1, pady=1, columnspan=3)
+        self.field_2_label = tk.Label(frame2, text="ID :", fg="black", bg='white', font=Label1_font)
+        self.field_2_label.grid(row=0, column=0, padx=0, pady=2, sticky='w')
+        self.field_2_value = tk.Entry(frame2, fg="black", bg='white', textvariable=self.field2, highlightthickness=2,state="disabled")
+        self.field_2_value.grid(row=0, column=1, padx=1, pady=2, sticky='w')
+
+
+        self.field_0_label = tk.Label(frame2, text="Party:", fg="black", bg='white', font=Label1_font).grid(row=1,
+                                                                                                             column=0,
+                                                                                                             padx=0,
+                                                                                                             pady=2,
+                                                                                                             sticky='w')
+        self.feild_0_value = tk.Entry(frame2, fg="black", bg='white', textvariable=self.field0, highlightthickness=2,
+                                      highlightcolor='yellow',width=50, font=field_font, justify='center', exportselection=0)
+
+        self.feild_0_value.grid(row=1, column=1, padx=1, pady=2, columnspan=4)
+        self.feild_0_value.bind("<KeyRelease>", self.on_entry_key)
+        self.feild_0_value.bind("<Return>", lambda e:self.asktosave())
+
+
+        self.save_button = tk.Button(frame2, text="Save", fg="black", bg='white', font=field_font,command=lambda : self.asktosave())
+        self.save_button.grid(row=2, column=4, padx=1, pady=2, sticky='w')
+
+
+
+        treeview_width =500
+        self.treeview = ttk.Treeview(frame2,  height=15, selectmode="extended",show="headings",columns=("ID","Party"))
+        self.treeview.grid(row=4, column=0, padx=1, pady=2, columnspan=5)
+        self.treeview.column("ID", minwidth=int(treeview_width * 0.05), width=int(treeview_width * 0.05), stretch=False, anchor="center")
+        self.treeview.column("Party", minwidth=int(treeview_width * 0.85), width=int(treeview_width * 0.85), stretch=False, anchor="center")
+   
+        self.treeview.heading("Party", text="Party")
+        self.treeview.heading("ID", text="ID")
+        frame2.pack(fill='both', expand=True)
+        self.treeview.bind("<Double-1>", self.onselect)
+        self.reload_data()
+        
+
+
+    def on_entry_key(self, event):
+        search_term = self.field0.get().lower()
+        data=[]
+        for row in self.party_data:
+            if search_term in row[1].lower():
+                data.append(row)
+        self.refresh_data(data)
+        
+
+    def reload_data(self):
+        self.party_data=db.loadParty()
+        self.refresh_data(self.party_data)
+        self.id=[]
+        for row in self.party_data:
+            self.id.append(int(row[0]))
+
+    def refresh_data(self, data):
+        self.treeview.delete(*self.treeview.get_children())
+        data=data[::-1]
+        for row in data:
+            self.treeview.insert(parent="", index="end", values=list(row))
+            
+
+    def onselect(self, event):
+        w=self.treeview.selection()
+        for item in w:
+            self.field2.set(self.treeview.item(item, "values")[0])
+            self.field0.set(self.treeview.item(item, "values")[1])
+
+
+
+    def asktosave(self):
+
+        
+        if (len(self.field0.get()) != 0):
+            
+            if (int(self.field2.get()) in self.id):
+                MsgBox = tk.messagebox.askquestion('Ask To UPDATE', 'Do you want to UPDATE?', icon='question')
+                if MsgBox=='yes':
+                    db.update_Party(self.field2.get(),self.field0.get())
+                    self.reload_data()
+                    self.clr()
+                else:
+                    pass
+                
+            else:
+                MsgBox = tk.messagebox.askquestion('Ask To Save', 'Do you want to save?', icon='question')
+                if MsgBox == 'yes':
+                    self.save()
+                else:
+                    pass
+        else:
+            self.errmsg.set("enter valid data")
+
+        # except:
+        #     self.errmsg.set("error saving")
+
+    def save(self):
+        party=self.field0.get()
+        
+        db.saveParty(party)
+        self.reload_data()
+        self.clr()
+
+    def clr(self):
+        self.field0.set("")
+        if self.party_data==[]:
+            id=1
+        else:
+            id = self.party_data[-1][0]+1
+        self.field2.set( id )
+ 
+        self.errmsg.set("")
+
+    def close(self):
+        self.clr()
+        self.controller.show_frame(StartPage)
+        self.controller.focus_set()
+
+
+
+class DispatchPage(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        frame2 = tk.Frame(self, bg='white')
+        self.field0 = tk.StringVar()
+        self.field1 = tk.StringVar()
+        self.field2 = tk.StringVar()       
+        self.controller = controller
+        self.errmsg = tk.StringVar()
+
+        
+        err_font = Font(family="Arquitecta", size=10)
+        Label1_font = Font(family="Arquitecta", size=14)
+        field_font = Font(family="Arquitecta", size=12)
+
+        self.errorlabel = tk.Label(frame2, width=25, height=1, textvariable=self.errmsg, fg="red", bg='white',
+                                   font=err_font)
+        self.errorlabel.grid(row=11, column=0, padx=1, pady=1, columnspan=3)
+        self.field_2_label = tk.Label(frame2, text="ID :", fg="black", bg='white', font=Label1_font)
+        self.field_2_label.grid(row=0, column=0, padx=0, pady=2, sticky='w')
+        self.field_2_value = tk.Entry(frame2, fg="black", bg='white', textvariable=self.field2, highlightthickness=2,state="disabled")
+        self.field_2_value.grid(row=0, column=1, padx=1, pady=2, sticky='w')
+
+
+        self.field_0_label = tk.Label(frame2, text="Dispatch Remark:", fg="black", bg='white', font=Label1_font).grid(row=1,
+                                                                                                             column=0,
+                                                                                                             padx=0,
+                                                                                                             pady=2,
+                                                                                                             sticky='w')
+        self.feild_0_value = tk.Entry(frame2, fg="black", bg='white', textvariable=self.field0, highlightthickness=2,
+                                      highlightcolor='yellow',width=40, font=field_font, justify='center', exportselection=0)
+
+        self.feild_0_value.grid(row=1, column=1, padx=1, pady=2, columnspan=2)
+        self.feild_0_value.bind("<KeyRelease>", self.on_entry_key)
+        self.feild_0_value.bind("<Return>", lambda e:self.asktosave())
+
+
+        self.save_button = tk.Button(frame2, text="Start", fg="black", bg='white', font=field_font,command=lambda : self.asktosave())
+        self.save_button.grid(row=2, column=1, padx=1, pady=2, sticky='w')
+
+        self.delete_button = tk.Button(frame2, text="delete", fg="black", bg='white', font=field_font,command=lambda : self.delete_dispatch())
+        self.delete_button.grid(row=2, column=2, padx=1, pady=2, sticky='w')
+
+        self.edit_button = tk.Button(frame2, text="edit", fg="black", bg='white', font=field_font,command=lambda : self.edit_dispatch())
+        self.edit_button.grid(row=2, column=3, padx=1, pady=2, sticky='w')
+
+
+
+        treeview_width =500
+        self.treeview = ttk.Treeview(frame2,  height=15, selectmode="extended",show="headings",columns=("ID","Dispatch","date"))
+        self.treeview.grid(row=4, column=0, padx=1, pady=2, columnspan=3)
+        self.treeview.column("ID", minwidth=int(treeview_width * 0.05), width=int(treeview_width * 0.05), stretch=False, anchor="center")
+        self.treeview.column("Dispatch", minwidth=int(treeview_width * 0.85), width=int(treeview_width * 0.75), stretch=False, anchor="center")
+        self.treeview.column("date", minwidth=int(treeview_width * 0.10), width=int(treeview_width * 0.15), stretch=False, anchor="center")
+  
+        self.treeview.heading("Dispatch", text="Dispatch Remark")
+        self.treeview.heading("ID", text="ID")
+        self.treeview.heading("date", text="date")
+        frame2.pack(fill='both', expand=True)
+        self.treeview.bind("<Double-1>", self.on_double_click)
+        self.reload_data()
+
+        
+
+    def on_double_click(self, event):
+        w=self.treeview.selection()
+        for item in w:
+            ds_id = (self.treeview.item(item, "values")[0])
+        
+        window=BarcodePage(self,ds_id)
+        window.grab_set()
+
+        
+    def delete_dispatch(self):
+        w=self.treeview.selection()
+        for item in w:
+            ds_id = (self.treeview.item(item, "values")[0])
+            db.delete_dispatch(ds_id)
+            self.reload_data()
+            self.clr()
+
+
+    def on_entry_key(self, event):
+        search_term = self.field0.get().lower()
+        data=[]
+        for row in self.Dispatch_data:
+            if search_term in row[1].lower():
+                data.append(row)
+        self.refresh_data(data)
+        
+
+    def reload_data(self):
+        self.Dispatch_data=db.loadDispatch()
+        self.refresh_data(self.Dispatch_data)
+        self.id=[]
+        for row in self.Dispatch_data:
+            self.id.append(int(row[0]))
+
+    def refresh_data(self, data):
+        self.treeview.delete(*self.treeview.get_children())
+        data=data[::-1]
+        for row in data:
+            self.treeview.insert(parent="", index="end", values=list(row))
+            
+
+    def edit_dispatch(self, event):
+        w=self.treeview.selection()
+        for item in w:
+            self.field2.set(self.treeview.item(item, "values")[0])
+            self.field0.set(self.treeview.item(item, "values")[1])
+
+
+
+    def asktosave(self):
+
+        
+        if (len(self.field0.get()) != 0):
+            
+            if (int(self.field2.get()) in self.id):
+                MsgBox = tk.messagebox.askquestion('Ask To UPDATE', 'Do you want to UPDATE?', icon='question')
+                if MsgBox=='yes':
+                    db.update_Dispatch(self.field2.get(),self.field0.get())
+                    self.reload_data()
+                    self.clr()
+                else:
+                    pass
+                
+            else:
+                MsgBox = tk.messagebox.askquestion('Ask To Start', 'Do you want to start barcode scan?', icon='question')
+                if MsgBox == 'yes':
+                    self.save()
+                else:
+                    pass
+        else:
+            self.errmsg.set("enter valid data")
+
+        # except:
+        #     self.errmsg.set("error saving")
+
+    def save(self):
+        Dispatch=self.field0.get()
+        ds_id = self.field2.get()
+        
+        db.saveDispatch(Dispatch)
+        self.reload_data()
+        self.clr()
+        window=BarcodePage(self,ds_id)
+        window.grab_set()
+        
+        
+
+    def clr(self):
+        self.field0.set("")
+        if self.Dispatch_data==[]:
+            id=1
+        else:
+            id = self.Dispatch_data[-1][0]+1
+        self.field2.set(id)
+ 
+        self.errmsg.set("")
+
+    def close(self):
+        self.clr()
+        self.controller.show_frame(StartPage)
+        self.controller.focus_set()
+
+
+
+class BarcodePage(tk.Toplevel):
+
+    def __init__(self, parent,ds_id=None,**kwargs):
+        tk.Toplevel.__init__(self, parent,**kwargs,bg="#ADD8E0")
+        s=ttk.Style(self)
+        s.theme_use('clam')
+        self.iconbitmap('myicon.ico')
+        self.geometry(str(self.winfo_screenwidth())+"x"+str(self.winfo_screenheight()))
+        self.state('zoomed')
+
+        self.title("Barcode Report")
+        self.barcode=tk.StringVar()
+        self.ds_id=ds_id
+        
+
+        self.sno=0
+        self.id = []
+        self.totalgwt = tk.StringVar()
+        self.totaltwt = tk.StringVar()
+        self.totalcwt = tk.StringVar()
+        self.totalnwt = tk.StringVar()
+        self.totalqty = tk.StringVar()
+
+        self.qty =0
+        self.twt=0
+        self.cwt=0
+        self.nwt=0
+        self.gwt=0
+
+        self.checkbox = tk.BooleanVar(value=True)
+
+        Label_font = Font(family="Arquitecta", size=12)
+
+        frame = tk.Frame(self, bg='white')
+        frame.pack(fill="both",expand=True)
+
+        frame1 = tk.Frame(frame,bg="#ADD8E0")
+        frame1.grid(row=0,column=0)
+
+        self.field_1_label = tk.Label(frame1, text="Barcode.:",fg="black",bg="#ADD8E0",font=Label_font)
+        self.field_1_label.grid(row=1,column=0, padx=1,pady=5,sticky='e')
+
+        self.feild_1_value = tk.Entry(frame1,fg="black",bg="white", textvariable=self.barcode,width=40,highlightthickness=2,highlightcolor='yellow',justify='center',exportselection=0)
+        self.feild_1_value.grid(row=1,column=1, padx=1,pady=5,columnspan=2,sticky='w')
+        self.feild_1_value.focus_set()
+        self.feild_1_value.bind("<Return>",self.submit)
+
+
+        
+        button_frame=tk.Frame(frame1,bg="#ADD8E0")
+        button_frame.grid(row=1,column=2)
+
+
+
+
+
+
+        image3 = Image.open("res/print.jpg")
+        button_image3 = ImageTk.PhotoImage(image3)
+
+
+
+        image5 = Image.open("res/printxl.jpg")
+        button_image5 = ImageTk.PhotoImage(image5)
+
+
+
+
+
+
+        self.button2 = tk.Button(button_frame,relief="groove",text="delete", compound="left",command=lambda:self.delete_selected_item())
+        self.button2.image = button_image3  # Store the image reference
+        self.button2.bind("<Return>", lambda e: self.delete_selected_item())
+        self.button2.grid(row=0,column=4,rowspan=3, padx=10, pady=10)
+
+
+        self.button3 = tk.Button(button_frame,relief="groove", image=button_image3, compound="left",command=lambda:self.printing("pdf"))
+        self.button3.image = button_image3  # Store the image reference
+        self.button3.bind("<Return>", lambda e: self.printing("pdf"))
+        self.button3.grid(row=0,column=5,rowspan=3, padx=10, pady=10)
+
+
+
+        self.button5 = tk.Button(button_frame,relief="groove", image=button_image5, compound="left",command=lambda:self.printing("xl"))
+        self.button5.image = button_image5  # Store the image reference
+        self.button5.bind("<Return>", lambda e: self.printing("xl"))
+        self.button5.grid(row=0,column=6,rowspan=3, padx=10, pady=10)
+
+
+        self.button6 = tk.Checkbutton(button_frame,text= "Change Status", variable=self.checkbox)
+        self.button6.grid(row=0,column=7,rowspan=3,padx=10,pady=10)
+
+        bottom_frame= tk.LabelFrame(frame1)
+        bottom_frame.grid(row=3,column=0,columnspan = 4)
+
+        self.total = tk.Label(bottom_frame, textvariable=self.totalqty,bg="#ADD8E0",font=Label_font)
+        self.total.grid(row=0,column=0)
+
+        self.totalGWT = tk.Label(bottom_frame,textvariable=self.totalgwt,bg="#ADD8E0",font=Label_font)
+        self.totalGWT.grid(row=0,column=1)
+
+        self.totalTWT = tk.Label(bottom_frame,textvariable=self.totaltwt, bg="#ADD8E0",font=Label_font)
+        self.totalTWT.grid(row=0,column=2)
+
+        self.totalCWT = tk.Label(bottom_frame,textvariable=self.totalcwt, bg="#ADD8E0",font=Label_font)
+        self.totalCWT.grid(row=0,column=3)
+
+        self.totalNWT = tk.Label(bottom_frame,textvariable=self.totalnwt, bg="#ADD8E0",font=Label_font)
+        self.totalNWT.grid(row=0,column=4)
+
+
+
+        treeview_width = int((self.winfo_screenwidth())/1.55)
+   
+        self.treeview = ttk.Treeview(frame1, columns=("Sno","ID","Lot No","Roll No",
+             "PartyName", "Job Name","GrossWeight", "TareWeight","CoreWeight" ,"NetWeight","Date","Status"
+        ),height=28,selectmode="extended")
+        self.treeview.grid(row=2,column=0,columnspan=4,padx=1,pady=5,sticky='w')
+
+        self.treeview.column("#0", minwidth=0, width=0, stretch=False, anchor="center")
+        self.treeview.column("Sno", minwidth=int(treeview_width * 0.05), width=int(treeview_width * 0.05), stretch=False, anchor="center")
+        self.treeview.column("ID", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("Lot No", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("Roll No", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("PartyName", minwidth=int(treeview_width * 0.3), width=int(treeview_width * 0.3), stretch=False, anchor="center")
+        self.treeview.column("Job Name", minwidth=int(treeview_width * 0.3), width=int(treeview_width * 0.3), stretch=False, anchor="center")
+        self.treeview.column("GrossWeight", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("TareWeight", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("CoreWeight", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("NetWeight", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("Date", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        self.treeview.column("Status", minwidth=int(treeview_width * 0.1), width=int(treeview_width * 0.1), stretch=False, anchor="center")
+        # Add headings
+        self.treeview.heading("ID", text="ID")
+        self.treeview.heading("Sno", text="Sno")
+        self.treeview.heading("Lot No", text="Lot No")
+        self.treeview.heading("Roll No", text="Roll No")
+        self.treeview.heading("PartyName", text="PartyName")
+        self.treeview.heading("Job Name", text="Job Name")
+        self.treeview.heading("GrossWeight", text="GrossWeight")
+        self.treeview.heading("TareWeight", text="TareWeight")
+        self.treeview.heading("CoreWeight", text="CoreWeight")
+        self.treeview.heading("NetWeight", text="NetWeight")
+        self.treeview.heading("Date", text="Date")
+        self.treeview.heading("Status", text="Status")
+
+
+
+        self.treeview.bind("<ButtonRelease-1>",self.on_click)
+        self.treeview.bind("<Delete>", self.delete_selected_item)
+        self.load_data()
+    
+    def load_data(self):
+        self.treeview.delete(*self.treeview.get_children())
+        data= db.load_ds_id(self.ds_id)
+        for row in data:
+            self.sno+=1
+            row_data =list((self.sno,) + row)
+            self.treeview.insert("", 0, values= row_data)
+            self.id.append(row_data[1])
+            self.gwt+=float(row_data[6])
+            self.twt+=float(row_data[7])
+            self.cwt+=float(row_data[8])
+            self.nwt+=float(row_data[9])
+    
+            self.totalqty.set("Total Qty : "+str(self.sno))
+            self.totalgwt.set("Total Gross Weight : "+str(round(self.gwt,3)))
+            self.totaltwt.set("Total Tare Weight : "+str(round(self.twt,3)))
+            self.totalcwt.set("Total Core Weight : "+str(round(self.cwt,3)))
+            self.totalnwt.set("Total Net Weight : "+str(round(self.nwt,3)))
+            
+
+
+    def delete_selected_item(self,event=None):
+        selected_item = self.treeview.selection()  # Get selected item(s)
+
+        for item in selected_item:
+            
+            self.sno-=1
+            data = self.treeview.item(item,"values")
+            self.id.remove(int(data[1]))
+            self.gwt-=float(data[6])
+            self.twt-=float(data[7])
+            self.cwt-=float(data[8])
+            self.nwt-=float(data[9])
+    
+            self.totalqty.set("Total Qty : "+str(self.sno))
+            self.totalgwt.set("Total Gross Weight : "+str(round(self.gwt,3)))
+            self.totaltwt.set("Total Tare Weight : "+str(round(self.twt,3)))
+            self.totalcwt.set("Total Core Weight : "+str(round(self.cwt,3)))
+            self.totalnwt.set("Total Net Weight : "+str(round(self.nwt,3)))
+            
+            self.treeview.delete(item)
+            db.upadat_ds_id(None,data[1])
+
+
+
+
+
+    def on_click(self,event):
+        self.feild_1_value.focus_set()
+
+    def submit(self,event):
+        
+        barcode = self.barcode.get()
+        bar_data = db.get_barcode_data(barcode)
+        if barcode != "" or bar_data != None:
+            
+            
+            if bar_data[0] not in self.id:
+                self.sno+=1
+                data =list((self.sno,) + bar_data)
+                self.treeview.insert("", 0, values= data)
+                self.id.append(data[1])
+                self.gwt+=float(data[6])
+                self.twt+=float(data[7])
+                self.cwt+=float(data[8])
+                self.nwt+=float(data[9])
+      
+                self.totalqty.set("Total Qty : "+str(self.sno))
+                self.totalgwt.set("Total Gross Weight : "+str(round(self.gwt,3)))
+                self.totaltwt.set("Total Tare Weight : "+str(round(self.twt,3)))
+                self.totalcwt.set("Total Core Weight : "+str(round(self.cwt,3)))
+                self.totalnwt.set("Total Net Weight : "+str(round(self.nwt,3)))
+
+                db.upadat_ds_id(self.ds_id,data[1])
+
+                
+                
+
+
+            else:
+                pass
+            
+              
+
+
+
+        self.barcode.set("")
+
+    def printing(self,format):
+
+        selected_rows=[]
+        rows = self.treeview.get_children()
+        for item in rows:
+            value=list(self.treeview.item(item,"values"))
+            selected_rows.append(value)
+        ids=self.id
+        if self.checkbox.get() == True:
+            db.update_status(ids)
+        else:
+            pass
+        
+        
+
+
+        toprint=selected_rows.copy()
+        
+        if format=="xl":
+            exel.create_report(list(toprint))
+            self.print_exel()
+        elif format=="pdf":
+            report2.create_report(list(toprint))
+            self.print_pdf()
+        else:
+            pass
+
+
+
+        
+
+    def print_exel(self):
+        filename = "packing_list.xlsx"
+        # Open the PDF file using the default PDF viewer
+        subprocess.run(["start", filename], shell=True)
+
+
+    def print_pdf(self):
+        filename = "packing_list.pdf"
+        subprocess.run(["start",filename], shell=True)
+
+    def F1(self):
+        try:
+            if (self.controller.hero.get() == "<class '__main__.StartPage'>"):
+                self.controller.show_frame(BarcodePage)
+                self.clr()
+                self.feild_1_value.focus_set()
+
+        except:
+            pass
+
+
 
 class updater(tk.Toplevel):
 
@@ -654,13 +1295,10 @@ class updater(tk.Toplevel):
         xcord=(self.winfo_screenwidth()/2)-150
         ycord=(self.winfo_screenheight()/2)-75
 
+
         self.ucd=0
-        
-
         self.geometry("300x150"+"+"+str(int(xcord))+"+"+str(int(ycord)))
-
         self.dot=tk.StringVar()
-
         self.iconbitmap('myicon.ico')
         self.resizable(False,False)
 
@@ -823,7 +1461,12 @@ class Report(tk.Toplevel):
         self.combobox = ttk.Combobox(frame_but, textvariable=self.combobox_var,font=field_font,width=8, values=["Done", "All","Pending"], state="readonly")
         self.combobox.grid(row=2, column=9,sticky="w", padx=10, pady=10)
 
+        F_label2 = tk.Label(frame_but,font=label_font, text="machine :", bg="#ADD8E0")
+        F_label2.grid(row=3, column=8,pady=10,padx=10,sticky="e")
 
+        self.combobox_var2 = tk.StringVar()
+        self.combobox2 = ttk.Combobox(frame_but, textvariable=self.combobox_var2,font=field_font,width=8, values=["All","1", "2","3","4","5","6","7","8","old"], state="readonly")
+        self.combobox2.grid(row=3, column=9,sticky="w", padx=10, pady=10)
         
         today_date=datetime.datetime.today().strftime("%Y-%m-%d")
         one_month=(datetime.datetime.today() - relativedelta(months=1)).strftime("%Y-%m-%d")
@@ -933,6 +1576,10 @@ class Report(tk.Toplevel):
         self.label_5=tk.Label(label_frame,textvariable=self.label5,font=fieldx_font,bg="#ADD8E0")
         self.label_5.grid(row=0,column=4,sticky="w")
 
+        self.checkbox = tk.BooleanVar(value=True)
+
+        
+
 
         self.label1.set(f"Selected Rolls |\n{0}")
         self.label2.set(f"Selected Gross Weight |\n{0} KG")
@@ -966,7 +1613,7 @@ class Report(tk.Toplevel):
         image5 = Image.open("res/printxl.jpg")
         button_image5 = ImageTk.PhotoImage(image5)
 
-
+        
 
         
 
@@ -1000,13 +1647,17 @@ class Report(tk.Toplevel):
         self.button5.grid(row=0,column=6,rowspan=3, padx=10, pady=10)
 
 
-        self.button6 = tk.Radiobutton(button_frame,text= "Change Status",)
+        self.button6 = tk.Checkbutton(button_frame,text= "Change Status", variable=self.checkbox)
         self.button6.grid(row=0,column=7,rowspan=3,padx=10,pady=10)
 
         self.button3.grid_remove()  # Hide the button initially
         self.button5.grid_remove()  # Hide the button initially
         self.button6.grid_remove()
         
+
+
+
+    
 
 
         # self.delete_button = tk.Button(button_frame, text="Delete", command=lambda:self.delete_selected_record())
@@ -1039,6 +1690,7 @@ class Report(tk.Toplevel):
         self.party_name_var.trace_add("write", lambda *args: self.view_report())
         self.material_var.trace_add("write", lambda *args: self.view_report())
         self.combobox_var.trace_add("write", lambda *args: self.view_report())
+        self.combobox_var2.trace_add("write", lambda *args: self.view_report())
         
 
 
@@ -1189,10 +1841,6 @@ class Report(tk.Toplevel):
         self.end_date_entry.set_date(today_date)
 
 
-
-    
-
-
         self.party_name_var.set('')
         self.material_var.set('')
 
@@ -1214,6 +1862,7 @@ class Report(tk.Toplevel):
         party_name = self.party_name_var.get()
         material = self.material_var.get()
         ticket_type = self.combobox_var.get()
+        machine_No = self.combobox_var2.get()
 
         # Check if the start date is less than the current date
         current_date = datetime.datetime.now().date()
@@ -1241,14 +1890,23 @@ class Report(tk.Toplevel):
             self.filtered_data[10] = self.filtered_data.apply(populate_column, axis=1)
             
 
-
-
-
-
             if ticket_type == "Done":
                 self.filtered_data = self.filtered_data[self.filtered_data[10] == "Done"]
             elif ticket_type == "Pending":
                 self.filtered_data = self.filtered_data[self.filtered_data[10] != "Done"]
+
+            
+
+            if machine_No == "All":
+                self.filtered_data = self.filtered_data
+            elif machine_No == "old":
+                self.filtered_data = self.filtered_data[self.filtered_data[11] == 0]
+            else:
+                self.filtered_data = self.filtered_data[self.filtered_data[11] == int(machine_No)]
+                
+
+
+
 
             if start_ticket:
                 self.filtered_data = self.filtered_data[self.filtered_data[2].astype("Int64") >= int(start_ticket)]
@@ -1313,7 +1971,10 @@ class Report(tk.Toplevel):
         
         selected_rows = self.df[self.df["Mark"] == "✔"]
         ids=selected_rows[0].tolist()
-        db.update_status(ids)
+        if self.checkbox.get() == True:
+            db.update_status(ids)
+        else:
+            pass
         
         
 
@@ -1974,8 +2635,11 @@ class JobPage(tk.Frame):
     def clr(self):
         self.field0.set("")
         self.field1.set("1")
-        self.field2.set(self.variety_data[-1][0]+1)
- 
+        if self.variety_data==[]:
+            id=1
+        else:
+            id = self.variety_data[-1][0]+1
+        self.field2.set( id )
         self.errmsg.set("")
 
     def close(self):
@@ -2110,6 +2774,9 @@ class PasswordPage(tk.Frame):
 
         except:
             self.err.set("error saving")
+
+
+
 
 
 class PageThree(tk.Frame):
@@ -2268,11 +2935,12 @@ class PageThree(tk.Frame):
             if (self.controller.hero.get() == "<class '__main__.StartPage'>"):
                 self.controller.show_frame(PageThree)
 
-                with open('PartyName.txt') as p:
-                    self.options1=self.load_options('PartyName.txt')
-                    for option in self.options1:
-                        self.listbox1.insert(tk.END, option)
-                    self.field1.set(self.listbox1.get(0))
+                
+                self.options1=db.loadParty()
+
+                for option in self.options1:
+                    self.listbox1.insert(tk.END, option[1])
+                self.field1.set(self.listbox1.get(0))
 
 
                 
@@ -2293,7 +2961,7 @@ class PageThree(tk.Frame):
             pass
 
     def asktosave(self):
-        
+        # self.save()
         try:
             if (len(self.field1.get()) != 0):
                 MsgBox = tk.messagebox.askquestion('Ask To Save', 'Do you want to save?', icon='question')
@@ -2339,20 +3007,15 @@ class PageThree(tk.Frame):
         self.controller.focus_set()
 
 
-    def load_options(self,filename):
-        x=[]
-        with open(filename) as f:
-            for data in f.readlines():
-                x.append(data.strip())
 
-        return x
     
     def on_entry_key1(self, event):
         search_term = self.field1.get().lower()
         self.listbox1.delete(0, tk.END)
         for option in self.options1:
-            if search_term in option.lower():
-                self.listbox1.insert(tk.END, option)
+            if search_term in option[1].lower():
+                self.listbox1.insert(tk.END, option[1])
+                
         self.show_dropdown1()
 
     def on_select1(self, event):

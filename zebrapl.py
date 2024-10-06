@@ -8,6 +8,7 @@ from datetime import datetime
 
 def zeepl(wt):
     itrow = db.loadData()
+
     plno = db.lplno()
     Party = itrow[0]
     Variety = itrow[1]
@@ -15,6 +16,11 @@ def zeepl(wt):
     CoreWt = itrow[2]
     TareWt = itrow[3]
     xdate = itrow[4]
+    mac_id = itrow[5]
+  
+    Variety_id = itrow[6]
+    party_id = itrow[7]
+    tktno = db.loadtktno()
     current_date = datetime.now()
     current_date_str = current_date.strftime("%Y-%m-%d")
 
@@ -27,7 +33,7 @@ def zeepl(wt):
     Copy = int(PrintData[1].strip("\n"))
 
     stats = {'$Party': Party, '$Variety': Variety, '$CoreWt': CoreWt, '$TareWt': TareWt, '$GWt': weight,
-             '$NetWt': NetWt, '$RollNo': RollNo, '$xdate': xdate, '$plno':plno}
+             '$NetWt': NetWt, '$RollNo': RollNo, '$xdate': xdate, '$plno':plno,'$macid':mac_id,'$partyid':party_id,'$varid':Variety_id,'$tktno':tktno}
     fixrow = []
     fixrow = db.getfix()
 
@@ -180,7 +186,8 @@ def zeepl(wt):
                 win32print.StartPagePrinter(hprinter)
                 for i in range(0, Copy):
                     win32print.WritePrinter(hprinter, raw_data)
-                db.SaveBatching(plno,RollNo, Party, Variety,  weight,  TareWt,CoreWt, NetWt,current_date_str,"Pending")
+                db.SaveBatching(plno,RollNo, party_id, Variety_id,  weight,  TareWt,CoreWt, NetWt,current_date_str,"Pending",mac_id,barcode)
+                db.tktno(int(tktno)+1)
                 
 # LotNo,RollNo,Party, Variety,GrossWt, TareWt,CoreWt, NetWt,Date,Status
                 win32print.EndPagePrinter(hprinter)
