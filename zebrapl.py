@@ -186,7 +186,7 @@ def zeepl(wt):
                 win32print.StartPagePrinter(hprinter)
                 for i in range(0, Copy):
                     win32print.WritePrinter(hprinter, raw_data)
-                db.SaveBatching(plno,RollNo, party_id, Variety_id,  weight,  TareWt,CoreWt, NetWt,current_date_str,"Pending",mac_id,barcode)
+                db.SaveBatching(plno,RollNo, party_id, Variety_id,  weight,  TareWt,CoreWt, NetWt,current_date_str,"Pending",mac_id,barcode[2:])
                 db.tktno(int(tktno)+1)
                 
 # LotNo,RollNo,Party, Variety,GrossWt, TareWt,CoreWt, NetWt,Date,Status

@@ -14,7 +14,7 @@
 ^FXNow some text^FS
 ^FO150,200
 ^A0N,35
-^FD Gross Wt.: 27.000^FS
+^FD Gross Wt.: 16.000^FS
 ^FXNow some text^FS
 ^FO150,250
 ^A0N,30
@@ -26,7 +26,7 @@
 ^FXNow some text^FS
 ^FO150,350
 ^A0N,30
-^FD Net Wt: 1.950^FS
+^FD Net Wt: -9.050^FS
 ^FXNow some text^FS
 ^FO500,280
 ^A0N,30
@@ -34,18 +34,18 @@
 ^FXNow some text^FS
 ^FO600,30
 ^A0N,25
-^FD 03-10-24^FS
+^FD 25-10-24^FS
 ^FXNow some text^FS
 ^FO260,110
 ^A0N,40
 ^FB450,2,0,L,0
-^FD2006619 66.8GM MILK BIKIS^FS
+^FD4013649 45+5=50gm parle G Ramakrishna ^FS
 ^FXNow some text^FS
 ^FO510,320
 ^A0N,70
 ^FB140,1,0,C,0
-^FD 618^FS
+^FD 109^FS
 ^FXBarcode and text^FS
 ^FO200,50
-^BQN,2,5,M^FD10000004M2^FS
+^BQN,2,5,M^FD**10000017M2^FS
 ^XZ

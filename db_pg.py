@@ -22,6 +22,8 @@ def getmac():
 
 parms=json.load(open('db_parms.json'))
 
+
+
     
 def getfix():
 
@@ -447,7 +449,11 @@ def update_check():
     
     except:
         return False
+    
 
+def getversion():
+    old=json.load(open('version.json'))
+    return old['version']
 
 def tktno(tktno):
     
@@ -506,6 +512,7 @@ def loadDispatch():
     cur=con.cursor()
     cur.execute('''SELECT * FROM "dispatch_slip" ORDER BY "ds_id" ASC;''')
     rows=cur.fetchall()
+    con.commit()
     con.close()
     return rows
 
@@ -533,6 +540,7 @@ def load_ds_id(ds_id):
                 ON "Party"."party_id" = "bat"."party_id"
                 where "ds_id" = %s''', (ds_id,))
     rows=cur.fetchall()
+    con.commit()
     con.close()
     return rows
 
@@ -540,7 +548,6 @@ def delete_dispatch(ds_id):
     con=pg.connect(**parms)
     cur=con.cursor()
     cur.execute('''UPDATE "bat" SET "ds_id" = NULL WHERE "ds_id" = %s ;''',(ds_id,))
-
     cur.execute('''DELETE FROM "dispatch_slip" WHERE "ds_id" = %s;''', (ds_id,))
     con.commit()
     con.close()

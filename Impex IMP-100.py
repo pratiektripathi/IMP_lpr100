@@ -21,6 +21,7 @@ import templete as temp
 import zebrapl
 import sqlite3 as lite
 import pandas as pd
+import relayusb as relay
 
 
 
@@ -99,19 +100,22 @@ class MainApp(tk.Tk):
     def __init__(self, *args, **kwargs):
 
         tk.Tk.__init__(self, *args, **kwargs)
+
+        version= db.getversion()
+        
+
+
         if xuid==1:
-            self.title("Impex IMP-100 v1.5 (Activated)")
+            self.title(f"Impex IMP-100 v{version} (Activated)")
         else:
-            self.title("Impex IMP-100 v1.5(demo)")
+            self.title(f"Impex IMP-100 v{version}(demo)")
 
         self.iconbitmap('myicon.ico')
-
 
         menubar=tk.Menu(self)
         mastermenu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Master", menu=mastermenu)
         mastermenu.add_command(label="Add Party", command=self.add_party)
-        mastermenu.add_command(label="Add from PartyName.txt", command=self.add_party_from_file)
         
         mastermenu.add_separator()
 
@@ -128,8 +132,8 @@ class MainApp(tk.Tk):
 
         menubar.add_cascade(label="Help", menu=helpmenu)
         helpmenu.add_command(label="Settings", command=self.settings)
-        # helpmenu.add_separator()
-        # helpmenu.add_command(label="check for update", command=self.check_for_update)
+        helpmenu.add_separator()
+        helpmenu.add_command(label="check for update", command=self.check_for_update)
         self.config(menu=menubar)
 
 
@@ -239,8 +243,8 @@ class MainApp(tk.Tk):
         self.show_frame(JobPage)
 
     def check_for_update(self):
-        window=updater(self)
-        window.grab_set()
+        self.destroy()
+        subprocess.call("updater.exe")
     
     def settings(self):
         self.frames[PasswordPage].F1()
@@ -261,17 +265,6 @@ class MainApp(tk.Tk):
         self.am=1
         self.frames[StartPage].gremove()
 
-
-    def add_party_from_file(self):
-        partyNames= [x[1] for x in db.loadParty()]
-  
-        with open('PartyName.txt', 'r') as f:
-            for line in f:
-                if line not in partyNames:
-                    db.saveParty(line.strip('\n'))
-                    
-        
-        tk.messagebox.showinfo("Success", "Party Added")
 
 
 
@@ -1020,7 +1013,7 @@ class BarcodePage(tk.Toplevel):
         self.nwt=0
         self.gwt=0
 
-        self.checkbox = tk.BooleanVar(value=True)
+        self.checkbox = tk.BooleanVar(value=False)
 
         Label_font = Font(family="Arquitecta", size=12)
 
@@ -1037,6 +1030,7 @@ class BarcodePage(tk.Toplevel):
         self.feild_1_value.grid(row=1,column=1, padx=1,pady=5,columnspan=2,sticky='w')
         self.feild_1_value.focus_set()
         self.feild_1_value.bind("<Return>",self.submit)
+        self.current_item=""
 
 
         
@@ -1137,6 +1131,8 @@ class BarcodePage(tk.Toplevel):
         self.treeview.heading("Date", text="Date")
         self.treeview.heading("Status", text="Status")
 
+        
+
 
 
         self.treeview.bind("<ButtonRelease-1>",self.on_click)
@@ -1161,6 +1157,7 @@ class BarcodePage(tk.Toplevel):
             self.totaltwt.set("Total Tare Weight : "+str(round(self.twt,3)))
             self.totalcwt.set("Total Core Weight : "+str(round(self.cwt,3)))
             self.totalnwt.set("Total Net Weight : "+str(round(self.nwt,3)))
+        self.current_item = data[0][4]
             
 
 
@@ -1194,42 +1191,72 @@ class BarcodePage(tk.Toplevel):
         self.feild_1_value.focus_set()
 
     def submit(self,event):
-        
         barcode = self.barcode.get()
         bar_data = db.get_barcode_data(barcode)
+
+ 
         if barcode != "" or bar_data != None:
+            if self.sno==0:
             
             
-            if bar_data[0] not in self.id:
-                self.sno+=1
-                data =list((self.sno,) + bar_data)
-                self.treeview.insert("", 0, values= data)
-                self.id.append(data[1])
-                self.gwt+=float(data[6])
-                self.twt+=float(data[7])
-                self.cwt+=float(data[8])
-                self.nwt+=float(data[9])
-      
-                self.totalqty.set("Total Qty : "+str(self.sno))
-                self.totalgwt.set("Total Gross Weight : "+str(round(self.gwt,3)))
-                self.totaltwt.set("Total Tare Weight : "+str(round(self.twt,3)))
-                self.totalcwt.set("Total Core Weight : "+str(round(self.cwt,3)))
-                self.totalnwt.set("Total Net Weight : "+str(round(self.nwt,3)))
+                if bar_data[0] not in self.id:
+                    self.sno+=1
+                    data =list((self.sno,) + bar_data)
+                    self.treeview.insert("", 0, values= data)
+                    self.id.append(data[1])
+                    self.gwt+=float(data[6])
+                    self.twt+=float(data[7])
+                    self.cwt+=float(data[8])
+                    self.nwt+=float(data[9])
+        
+                    self.totalqty.set("Total Qty : "+str(self.sno))
+                    self.totalgwt.set("Total Gross Weight : "+str(round(self.gwt,3)))
+                    self.totaltwt.set("Total Tare Weight : "+str(round(self.twt,3)))
+                    self.totalcwt.set("Total Core Weight : "+str(round(self.cwt,3)))
+                    self.totalnwt.set("Total Net Weight : "+str(round(self.nwt,3)))
 
-                db.upadat_ds_id(self.ds_id,data[1])
+                    db.upadat_ds_id(self.ds_id,data[1])
 
-                
-                
-
-
+                    self.current_item=bar_data[4]
+            
             else:
-                pass
+                if self.current_item==bar_data[4]:
+
+                    if bar_data[0] not in self.id:
+                        self.sno+=1
+                        data =list((self.sno,) + bar_data)
+                        self.treeview.insert("", 0, values= data)
+                        self.id.append(data[1])
+                        self.gwt+=float(data[6])
+                        self.twt+=float(data[7])
+                        self.cwt+=float(data[8])
+                        self.nwt+=float(data[9])
+            
+                        self.totalqty.set("Total Qty : "+str(self.sno))
+                        self.totalgwt.set("Total Gross Weight : "+str(round(self.gwt,3)))
+                        self.totaltwt.set("Total Tare Weight : "+str(round(self.twt,3)))
+                        self.totalcwt.set("Total Core Weight : "+str(round(self.cwt,3)))
+                        self.totalnwt.set("Total Net Weight : "+str(round(self.nwt,3)))
+
+                        db.upadat_ds_id(self.ds_id,data[1])
+
+                elif self.current_item!=bar_data[4]:
+                    self.barcode.set("")
+                    self.turnONhooter()
+
+                else:
+                    self.barcode.set("")
+
+        else:
+            pass
             
               
-
-
-
         self.barcode.set("")
+
+    def turnONhooter(self):
+        relay.on_all()
+        self.after(5000,relay.off_all)
+        
 
     def printing(self,format):
 
@@ -1284,73 +1311,6 @@ class BarcodePage(tk.Toplevel):
 
 
 
-class updater(tk.Toplevel):
-
-    def __init__(self, parent, **kwargs):
-        tk.Toplevel.__init__(self, parent,**kwargs,bg="#ADD8E0")
-        s=ttk.Style(self)
-        s.theme_use('clam')
-
-        self.title("Updater")
-        xcord=(self.winfo_screenwidth()/2)-150
-        ycord=(self.winfo_screenheight()/2)-75
-
-
-        self.ucd=0
-        self.geometry("300x150"+"+"+str(int(xcord))+"+"+str(int(ycord)))
-        self.dot=tk.StringVar()
-        self.iconbitmap('myicon.ico')
-        self.resizable(False,False)
-
-        self.frame1=tk.Frame(self,bg="#ADD8E0")
-        self.label1=tk.Label(self.frame1,text="Checking For Update",font=("Arquitecta",12),bg="#ADD8E0")
-        self.label1.grid(row=0,column=0,pady=5)
-
-        self.label2=tk.Label(self.frame1,textvariable=self.dot,font=("Arquitecta",16),fg="red",bg="#ADD8E0")
-        self.dot.set("")
-        self.label2.grid(row=1,column=0,pady=5)
-
-
-        self.button1=tk.Button(self.frame1,text="Download & Update",font=("Arquitecta",12),bg="#ADD8E0",command=self.download)
-        self.button1.grid(row=2,column=0,pady=5)
-        self.button1.grid_remove()
-        self.frame1.pack(fill="both",expand=True)
-
-        self.check()
-
-    def check(self):
-        self.ucd+=1
-        cup=False
-        if self.ucd>5:
-            cup=db.update_check()
-            
-        if self.ucd<20 and cup==False:
-            if len(self.dot.get())<5:
-                self.dot.set(self.dot.get()+"*")
-                
-            else:
-                self.dot.set("")
-
-
-
-            self.after(500,self.check)
-
-        elif self.ucd<20 and cup==True:
-            self.dot.set("update available")
-            self.button1.grid()
-
-        else:
-            self.dot.set("update not available")
-            
-
-
-
-
-    def download(self):
-        print("downloading")
-        
-
-
 
 
 
@@ -1364,14 +1324,15 @@ class Report(tk.Toplevel):
         tk.Toplevel.__init__(self, parent,**kwargs,bg="#ADD8E0")
         s=ttk.Style(self)
         s.theme_use('clam')
-       
 
   
 
         self.geometry(str(self.winfo_screenwidth())+"x"+str(self.winfo_screenheight()))
         self.state('zoomed')
         self.iconbitmap('myicon.ico')
-        self.focus_set()
+
+        self.focus_set()   # Make sure this window gets focus
+
         self.title("REPORTS")
         self.count = tk.StringVar()
         self.cc = 0
@@ -1445,6 +1406,22 @@ class Report(tk.Toplevel):
         self.party_name_var = tk.StringVar()
         self.party_name_entry = ttk.Entry(frame_but,font=field_font, textvariable=self.party_name_var,width=50)
         self.party_name_entry.grid(row=3, column=5, padx=5, pady=2, sticky="w",columnspan=3)
+        self.party_name_entry.bind("<KeyRelease>", self.on_entry_key1)
+        self.party_name_entry.bind("<FocusIn>", self.show_dropdown1)
+        self.party_name_entry.bind("<FocusOut>", self.hide_dropdown1)
+
+
+
+        self.listbox1_popup = tk.Toplevel(parent)
+        self.listbox1_popup.wm_overrideredirect(True)  # Remove window decorations
+        self.listbox1_popup.withdraw()  # Hide initially
+
+        self.listbox1 = tk.Listbox(self.listbox1_popup, height=5, width=50)
+        self.listbox1.pack()
+        self.listbox1.bind("<<ListboxSelect>>", self.on_select1)
+        self.listbox1.bind("<FocusOut>", self.hide_dropdown1)
+ 
+
 
         material_label = tk.Label(frame_but,font=label_font, text="Job Name: ", bg="#ADD8E0")
         material_label.grid(row=2, column=4, sticky="w")
@@ -1452,6 +1429,19 @@ class Report(tk.Toplevel):
         self.material_var = tk.StringVar()
         self.material_entry = ttk.Entry(frame_but,font=field_font, textvariable=self.material_var,width=50)
         self.material_entry.grid(row=2, column=5, padx=5, pady=2, sticky="w",columnspan=3)
+
+        self.material_entry.bind("<KeyRelease>", self.on_entry_key2)
+        self.material_entry.bind("<FocusIn>", self.show_dropdown2)
+        self.material_entry.bind("<FocusOut>", self.hide_dropdown2)
+
+        self.listbox2_popup = tk.Toplevel(parent)
+        self.listbox2_popup.wm_overrideredirect(True)  # Remove window decorations
+        self.listbox2_popup.withdraw()  # Hide initially
+
+        self.listbox2 = tk.Listbox(self.listbox2_popup, height=5, width=50)
+        self.listbox2.pack()
+        self.listbox2.bind("<<ListboxSelect>>", self.on_select2)
+        self.listbox2.bind("<FocusOut>", self.hide_dropdown2)
 
 
         F_label = tk.Label(frame_but,font=label_font, text="Status :", bg="#ADD8E0")
@@ -1576,7 +1566,7 @@ class Report(tk.Toplevel):
         self.label_5=tk.Label(label_frame,textvariable=self.label5,font=fieldx_font,bg="#ADD8E0")
         self.label_5.grid(row=0,column=4,sticky="w")
 
-        self.checkbox = tk.BooleanVar(value=True)
+        self.checkbox = tk.BooleanVar(value=False)
 
         
 
@@ -1589,8 +1579,6 @@ class Report(tk.Toplevel):
 
 
 
-        self.party_name_var.trace('w', lambda *args: self.auto_capitalize(self.party_name_var))
-        self.material_var.trace('w', lambda *args: self.auto_capitalize(self.material_var))
 
     
         # -------------------------button---------------------------
@@ -1676,6 +1664,7 @@ class Report(tk.Toplevel):
         
 
         self.clr()
+        self.loadoptions()
         
         self.refresh_data(self.df)
         
@@ -1687,8 +1676,8 @@ class Report(tk.Toplevel):
         self.end_ticket_var.trace_add("write", lambda *args: self.view_report())
         self.start_date_entry.bind("<<DateEntrySelected>>", lambda event: self.view_report())
         self.end_date_entry.bind("<<DateEntrySelected>>", lambda event: self.view_report())
-        self.party_name_var.trace_add("write", lambda *args: self.view_report())
-        self.material_var.trace_add("write", lambda *args: self.view_report())
+        # self.party_name_var.trace_add("write", lambda *args: self.view_report())
+        # self.material_var.trace_add("write", lambda *args: self.view_report())
         self.combobox_var.trace_add("write", lambda *args: self.view_report())
         self.combobox_var2.trace_add("write", lambda *args: self.view_report())
         
@@ -1697,7 +1686,22 @@ class Report(tk.Toplevel):
 
 
 
+    def loadoptions(self):
+        self.options1=db.loadParty()
 
+        for option in self.options1:
+            self.listbox1.insert(tk.END, option[1])
+        
+
+
+        
+        self.options2=db.loadVariety()
+
+            
+        for option in self.options2:
+            self.listbox2.insert(tk.END, option[1])
+       
+        
         
 
 
@@ -1847,6 +1851,7 @@ class Report(tk.Toplevel):
         # self.delete_button.grid_remove()
         # Set the combobox value to "ALL"
         self.combobox_var.set('All')
+        self.combobox_var2.set('All')
 
         # Call the view_report function to update the treeview based on the cleared values
         self.treeview.delete(*self.treeview.get_children())
@@ -1928,10 +1933,11 @@ class Report(tk.Toplevel):
 
 
             if party_name:
-                self.filtered_data = self.filtered_data[self.filtered_data[3].str.contains(party_name, case=False, na=False)]
+                self.filtered_data = self.filtered_data[self.filtered_data[3]==party_name]
 
             if material:
-                self.filtered_data = self.filtered_data[self.filtered_data[4].str.contains(material, case=False, na=False)]
+                self.filtered_data = self.filtered_data[self.filtered_data[4]==material]
+                
 
 
             self.refresh_data(self.filtered_data)
@@ -2004,6 +2010,108 @@ class Report(tk.Toplevel):
         filename = "packing_list.pdf"
         subprocess.run(["start",filename], shell=True)
 
+    def on_entry_key1(self, event):
+        search_term = self.party_name_var.get().lower()
+        self.listbox1.delete(0, tk.END)
+        for option in self.options1:
+            if search_term in option[1].lower():
+                self.listbox1.insert(tk.END, option[1])
+                
+        self.show_dropdown1()
+
+    def on_select1(self, event):
+
+        if self.listbox1.curselection():
+            self.current_selection1 = self.listbox1.get(self.listbox1.curselection()[0])
+            self.party_name_var.set(self.current_selection1)
+            self.listbox1.delete(0, tk.END)
+            self.listbox1.insert(tk.END, self.current_selection1)
+            self.hide_dropdown1()
+            self.treeview.focus_set()
+            self.view_report()
+            
+        else:
+            self.hide_dropdown1()
+
+
+        
+
+        
+        
+
+    def show_dropdown1(self, event=None):
+       
+        if not self.listbox1_popup.winfo_viewable():
+            x = self.party_name_entry.winfo_rootx()
+            y = self.party_name_entry.winfo_rooty() + self.party_name_entry.winfo_height()
+            self.listbox1_popup.geometry(f"+{x}+{y}")
+            self.listbox1_popup.deiconify() 
+            self.listbox1_popup.grab_set() # Show the Toplevel
+            
+    def hide_dropdown1(self, event=None):
+        
+
+        self.listbox1_popup.withdraw()
+        self.listbox1_popup.grab_release()
+        self.treeview.focus_set()
+        if self.party_name_entry.get().strip() == "" or self.listbox1.get(0)=="":
+            self.party_name_var.set("")
+            self.view_report()
+        else:
+            self.listbox1_popup.withdraw()
+            self.party_name_var.set(self.listbox1.get(0))
+        
+
+    def on_entry_key2(self, event):
+        search_term = self.material_var.get().lower()
+        self.listbox2.delete(0, tk.END)
+        for option in self.options2:
+            if search_term in option[1].lower():
+                self.listbox2.insert(tk.END, option[1])
+                
+        self.show_dropdown2()
+
+    def on_select2(self, event):
+        if self.listbox2.curselection():
+            self.current_selection2 = self.listbox2.get(self.listbox2.curselection()[0])
+            self.material_var.set(self.current_selection2)
+            self.listbox2.delete(0, tk.END)
+            self.listbox2.insert(tk.END, self.current_selection2)
+
+            
+            self.hide_dropdown2()
+              # Move focus to entry2 to trigger FocusOut on listbox2
+            self.treeview.focus_set()
+            self.view_report()
+            
+        else:
+            self.hide_dropdown2()
+            
+            
+        
+        
+
+    def show_dropdown2(self, event=None):
+        if not self.listbox2_popup.winfo_viewable():
+            x = self.material_entry.winfo_rootx()
+            y = self.material_entry.winfo_rooty() + self.material_entry.winfo_height()
+            self.listbox2_popup.geometry(f"+{x}+{y}")
+            self.listbox2_popup.deiconify()  
+            self.listbox2_popup.grab_set()# Show the Toplevel
+        
+            
+    def hide_dropdown2(self, event=None):
+        self.listbox2_popup.withdraw()
+        self.listbox2_popup.grab_release()
+        self.treeview.focus_set()
+
+        if self.material_entry.get().strip() == "" or self.listbox2.get(0)=="":
+            self.material_var.set("")
+            self.view_report()
+        else:
+            self.listbox2_popup.withdraw()
+            self.material_var.set(self.listbox2.get(0))
+        
 
     
 
@@ -3110,6 +3218,11 @@ if __name__ == '__main__':
     app = MainApp()
     app.mainloop()
     SerialThread.daemon=True
+    try:
+        relay.off_all()
+        relay.close_device()
+    except:
+        pass
 
 
 
